@@ -1,0 +1,15 @@
+<!DOCTYPE html>
+<html lang="en">
+<head><meta charset="UTF-8" /><title>BeatBoxArena</title></head>
+<body>
+  <h1>Hello BeatBoxArena!</h1>
+  <p id="msg"></p>
+  <script src="/socket.io/socket.io.js"></script>
+  <script>
+    const socket = io();
+    socket.on('hello', msg => {
+      document.getElementById('msg').textContent = msg;
+    });
+  </script>
+</body>
+</html>
