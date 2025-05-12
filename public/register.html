@@ -7,6 +7,8 @@
   <link rel="preconnect" href="https://fonts.gstatic.com">
   <link href="https://fonts.googleapis.com/css2?family=Russo+One&family=Inter:wght@400;600&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="/styles.css">
+  <!-- API設定を読み込み -->
+  <script src="/js/api-config.js"></script>
   <style>
     :root {
       --accent: #55dde0;
@@ -300,7 +302,7 @@
         levelTable: `🏅 ビギナー 💧
  └ 基礎3音がやっと / 歴<1年 / バトル未経験 / 観戦メイン
 
-🏅 ミドルクラス 🌱
+🏅 ミドルクラス ��
  └ 基礎安定＋特殊音少し / 1–3年 / ローカル大会参加経験
 
 🏅 アドバンス 🔥
@@ -428,6 +430,49 @@
       saveBtn.disabled = !(nameI.value.trim() && countryI.value && levelI.value);
     }
     [nameI, countryI, levelI].forEach(el => el.addEventListener('input', validate));
+
+    // プロフィール情報の取得と保存
+    async function loadProfile() {
+      try {
+        // 既存のプロフィールがあるか確認
+        const r = await callApi('/api/user');
+        if (r.ok) {
+          const data = await r.json();
+          document.getElementById('name').value = data.name;
+          document.getElementById('country').value = data.country;
+          document.getElementById('level').value = data.level;
+        }
+      } catch (err) {
+        console.error('Profile load error:', err);
+      }
+    }
+    
+    async function saveProfile() {
+      try {
+        const name = document.getElementById('name').value.trim();
+        const country = document.getElementById('country').value;
+        const level = document.getElementById('level').value;
+        
+        if (!name) return alert('名前を入力してください');
+        if (!country) return alert('国を選択してください');
+        if (!level) return alert('レベルを選択してください');
+        
+        const res = await callApi('/api/user', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ name, country, level })
+        });
+        
+        if (res.ok) {
+          window.location.href = '/lobby.html';
+        } else {
+          alert('保存に失敗しました');
+        }
+      } catch (err) {
+        console.error('Save error:', err);
+        alert('エラーが発生しました');
+      }
+    }
 
     // 既登録ユーザーはスキップ
     (async () => {

@@ -1290,7 +1290,10 @@
   <!-- Next Battleボタン（バトル終了時のみ右上に表示） -->
   <button id="nextBattleBtn" style="display:none;">→</button>
 
-  <script src="/socket.io/socket.io.js"></script>
+  <!-- Socket.IOクライアントライブラリをCDNから読み込み -->
+  <script src="https://cdn.socket.io/4.6.0/socket.io.min.js"></script>
+  <!-- API設定を読み込み -->
+  <script src="/js/api-config.js"></script>
   <script>
     // 多言語対応
     const i18n = {
@@ -1459,7 +1462,8 @@
     }
 
     let localStream, pc, countdownId;
-    const socket = io();
+    // Socket.IO接続を設定ファイルから作成
+    const socket = createSocketConnection();
     const roomId = new URLSearchParams(location.search).get('room');
     let order, names, countries;
 

@@ -997,7 +997,10 @@
     </div>
   </div>
 
-  <script src="/socket.io/socket.io.js"></script>
+  <!-- Socket.IOクライアントライブラリをCDNから読み込み -->
+  <script src="https://cdn.socket.io/4.6.0/socket.io.min.js"></script>
+  <!-- API設定を読み込み -->
+  <script src="/js/api-config.js"></script>
   <script>
     document.addEventListener('DOMContentLoaded', () => {
       const texts = {
@@ -1360,7 +1363,7 @@
       initPreview();
 
       // Socket logic
-      const socket = io();
+      const socket = createSocketConnection();
       socket.on('connect', () => {
         startBtn.disabled = false;
         statusEl.textContent = texts[locale].statusReady;
@@ -1394,7 +1397,7 @@
         saveBtn.disabled = true;
         editModal.style.display = 'flex';
         try {
-          const res = await fetch('/api/user');
+          const res = await callApi('/api/user');
           if (res.ok) {
             const u = await res.json();
             nameInput.value    = u.name;
@@ -1417,7 +1420,7 @@
           country: countryInput.value,
           level:   levelInput.value
         };
-        const r = await fetch('/api/user', {
+        const r = await callApi('/api/user', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify(body)
@@ -1427,7 +1430,7 @@
 
       // Logout
       logoutBtn.addEventListener('click', () => {
-        location.href = '/logout';
+        location.href = getAuthUrl('/logout');
       });
 
       // 設定モーダルの表示
@@ -1842,6 +1845,71 @@
             speakerTestBtn.disabled = false;
           }
         }
+      }
+
+      // プロフィール情報の取得と保存
+      async function loadProfile() {
+        try {
+          const res = await callApi('/api/user');
+          if (res.ok) {
+            const data = await res.json();
+            document.getElementById('username').textContent = data.name;
+            document.getElementById('userCountry').textContent = data.country;
+            document.getElementById('userLevel').textContent = data.level;
+            
+            // 国旗を更新
+            const flagEl = document.getElementById('userFlag');
+            if (flagEl) {
+              const countryCode = getCountryCode(data.country);
+              if (countryCode) {
+                flagEl.textContent = countryFlags[countryCode] || '';
+              }
+            }
+          }
+        } catch (err) {
+          console.error('Profile load error:', err);
+        }
+      }
+      
+      // ページ読み込み時にプロフィールを取得
+      loadProfile();
+      
+      async function saveProfile() {
+        try {
+          const name = document.getElementById('editName').value.trim();
+          const country = document.getElementById('editCountry').value;
+          const level = document.getElementById('editLevel').value;
+          
+          if (!name) return alert('名前を入力してください');
+          if (!country) return alert('国を選択してください');
+          if (!level) return alert('レベルを選択してください');
+          
+          const r = await callApi('/api/user', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ name, country, level })
+          });
+          
+          if (r.ok) {
+            loadProfile();
+            toggleProfileEdit(false);
+          } else {
+            alert('保存に失敗しました');
+          }
+        } catch (err) {
+          console.error('Save error:', err);
+          alert('エラーが発生しました');
+        }
+      }
+
+      // マッチング関連の処理
+      function setupMatchmaking() {
+        // マッチングボタンのクリックイベント
+        document.getElementById('matchBtn').addEventListener('click', () => {
+          // ... existing code ...
+        });
+
+        // ... existing code ...
       }
     });
   </script>
