@@ -3,27 +3,21 @@
   "version": "1.0.0",
   "main": "index.js",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "start": "node server.js"
   },
   "keywords": [],
   "author": "",
   "license": "ISC",
   "description": "",
   "dependencies": {
-    "@clerk/nextjs": "^6.19.1",
-    "@supabase/auth-helpers-nextjs": "^0.10.0",
-    "@supabase/ssr": "^0.6.1",
-    "@supabase/supabase-js": "^2.49.4",
     "dotenv": "^16.5.0",
     "express": "^5.1.0",
     "express-session": "^1.18.1",
     "mongodb": "^6.16.0",
     "mongoose": "^8.14.1",
-    "next": "^15.3.2",
     "passport": "^0.7.0",
     "passport-google-oauth20": "^2.0.0",
-    "react": "^19.1.0",
-    "react-dom": "^19.1.0",
     "socket.io": "^4.8.1"
   }
 }
