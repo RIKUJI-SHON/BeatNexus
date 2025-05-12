@@ -9,6 +9,7 @@ const passport       = require('passport');
 const { Server }     = require('socket.io');
 const GoogleStrategy = require('passport-google-oauth20').Strategy;
 const mongoose       = require('mongoose');
+const MongoStore     = require('connect-mongo');
 
 // ── 0) MongoDB(Mongoose) 接続
 const MONGODB_URI = process.env.MONGODB_URI;
@@ -40,6 +41,7 @@ app.use(express.json()); // JSON ボディの解析
 // セッション共有
 const sessionMw = session({
   secret: process.env.SESSION_SECRET || 'secret',
+  store: MongoStore.create({ mongoUrl: MONGODB_URI }),
   resave: false,
   saveUninitialized: false,
 });
