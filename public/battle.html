@@ -1224,7 +1224,7 @@
       </div>
       
       <div class="video-wrap">
-        <video id="remoteVideo" autoplay playsinline></video>
+        <video id="remoteVideo" autoplay playsinline muted></video>
         <div id="remoteName" class="nameTag"></div>
         <!-- 相手のミュート表示（新スタイル） -->
         <div class="audio-status muted" id="remoteMuteIcon">
@@ -1574,6 +1574,8 @@
           if (remoteVid.srcObject !== remoteStream) {
             console.log('リモートビデオにストリームを設定しています');
             remoteVid.srcObject = remoteStream;
+            // 自動再生のため play() を呼び出し
+            remoteVid.play().catch(err => console.warn('リモートビデオ再生エラー:', err));
             
             // リモート映像読み込み確認
             remoteVid.onloadedmetadata = () => {
