@@ -31,6 +31,7 @@ const User = model('User', UserSchema);
 
 // ── 2) アプリケーション設定
 const app    = express();
+app.set('trust proxy', true);
 const server = http.createServer(app);
 const io     = new Server(server);
 
