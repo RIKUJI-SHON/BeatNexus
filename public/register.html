@@ -1,0 +1,462 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>BeatNexus – Profile</title>
+  <link rel="preconnect" href="https://fonts.gstatic.com">
+  <link href="https://fonts.googleapis.com/css2?family=Russo+One&family=Inter:wght@400;600&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="/styles.css">
+  <style>
+    :root {
+      --accent: #55dde0;
+      --accent-dark: #33b5b8;
+      --radius: 8px;
+      --shadow: 0 4px 12px rgba(0,0,0,0.3);
+      --bg-1: #111111;
+      --bg-2: #222222;
+      --text-1: #ffffff;
+      --text-2: #cccccc;
+    }
+    body {
+      margin: 0;
+      background: var(--bg-1);
+      color: var(--text-1);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      min-height: 100vh;
+      font-family: 'Inter', sans-serif;
+      background: linear-gradient(135deg, #111111, #222222);
+    }
+    .card {
+      position: relative;
+      width: 90vw;
+      max-width: 480px;
+      padding: 2rem;
+      background: rgba(255,255,255,0.05);
+      backdrop-filter: blur(12px);
+      border-radius: var(--radius);
+      box-shadow: 0 8px 24px rgba(0,0,0,0.6);
+      display: flex;
+      flex-direction: column;
+      gap: 1.3rem;
+      border: 1px solid rgba(255,255,255,0.1);
+    }
+    #langSelect {
+      position: absolute;
+      top: .8rem;
+      right: .8rem;
+      width: auto;
+      min-width: 3.5rem;
+      padding: .3rem .5rem;
+      font-size: .75rem;
+      background: rgba(40, 40, 40, 0.85);
+      color: #ffffff;
+      border: 1px solid rgba(255, 255, 255, 0.3);
+      border-radius: 4px;
+      font-weight: 500;
+      box-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
+    }
+    h1 {
+      font-family: 'Russo One', sans-serif;
+      font-size: 1.8rem;
+      margin: 0;
+      text-align: center;
+      color: var(--accent);
+      text-shadow: 0 2px 4px rgba(0,0,0,0.5);
+    }
+    label {
+      font-weight: 600;
+      font-size: .95rem;
+      display: block;
+      margin-bottom: .3rem;
+    }
+    input, select {
+      width: 100%;
+      padding: .75rem 1rem;
+      border-radius: var(--radius);
+      border: 1px solid rgba(255,255,255,0.1);
+      background: rgba(0,0,0,0.2);
+      color: var(--text-1);
+      font-size: 1rem;
+      box-shadow: inset 0 2px 4px rgba(0,0,0,0.1);
+      transition: all 0.2s ease;
+    }
+    input:focus, select:focus {
+      outline: none;
+      border-color: var(--accent);
+      box-shadow: 0 0 0 2px rgba(85, 221, 224, 0.3);
+    }
+    /* インフォアイコンとツールチップ */
+    .level-selection {
+      display: flex;
+      align-items: center;
+    }
+    .info-icon {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      margin-left: 0.5rem;
+      cursor: pointer;
+      width: 1.6rem;
+      height: 1.6rem;
+      background: var(--accent);
+      color: #000;
+      border-radius: 50%;
+      font-size: 1rem;
+      position: relative;
+    }
+    .info-icon .tooltip {
+      position: absolute;
+      left: calc(100% + 0.5rem);
+      top: 50%;
+      transform: translateY(-50%) translateX(-0.5rem);
+      background: var(--bg-2);
+      color: var(--text-1);
+      padding: 0.8rem;
+      border-radius: var(--radius);
+      white-space: pre-wrap;
+      font-size: 0.85rem;
+      line-height: 1.4;
+      opacity: 0;
+      visibility: hidden;
+      transition: opacity 0.2s ease, transform 0.2s ease;
+      z-index: 100;
+      pointer-events: none;
+      min-width: 240px;
+      box-shadow: var(--shadow);
+      border: 1px solid rgba(255,255,255,0.1);
+    }
+    .info-icon .tooltip::before {
+      content: '';
+      position: absolute;
+      left: -0.5rem;
+      top: 50%;
+      transform: translateY(-50%);
+      border: 0.5rem solid transparent;
+      border-right-color: var(--bg-2);
+    }
+    .info-icon:hover .tooltip {
+      opacity: 1;
+      visibility: visible;
+      transform: translateY(-50%) translateX(0);
+    }
+    button {
+      width: 100%;
+      padding: .8rem;
+      font-weight: 600;
+      font-size: 1rem;
+      background: var(--accent);
+      color: #000;
+      border: none;
+      border-radius: var(--radius);
+      cursor: pointer;
+      box-shadow: var(--shadow);
+      transition: transform .2s, background-color .2s;
+    }
+    button:disabled {
+      opacity: .5;
+      cursor: not-allowed;
+    }
+    button:hover:not(:disabled) {
+      transform: translateY(-2px);
+      background: var(--accent-dark);
+    }
+    .notice {
+      font-size: .8rem;
+      color: var(--text-2);
+      text-align: center;
+    }
+    /* モバイル向けスタイル */
+    @media (max-width: 767px) {
+      .card {
+        padding: 1.5rem;
+        width: 95%;
+      }
+      
+      h1 {
+        font-size: 1.5rem;
+      }
+      
+      .info-icon .tooltip {
+        left: 0;
+        top: calc(100% + 0.5rem);
+        transform: translateY(-0.5rem);
+        width: 90vw;
+        max-width: 300px;
+      }
+      
+      .info-icon .tooltip::before {
+        left: 1rem;
+        top: -0.5rem;
+        transform: none;
+        border-color: transparent;
+        border-bottom-color: var(--bg-2);
+      }
+      
+      .info-icon:hover .tooltip {
+        transform: translateY(0);
+      }
+      
+      input, select {
+        padding: 0.6rem 0.8rem;
+      }
+      
+      button {
+        padding: 0.7rem;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="card">
+    <!-- 小型の言語切替 -->
+    <select id="langSelect">
+      <option value="en">EN</option>
+      <option value="ja">日本語</option>
+      <option value="es">ES</option>
+      <option value="fr">FR</option>
+      <option value="zh">中文</option>
+      <option value="ko">한국어</option>
+    </select>
+
+    <h1 id="title">Profile Setup</h1>
+
+    <div>
+      <label id="nameLbl" for="name">Name</label>
+      <input id="name" type="text" placeholder="Your stage name" required>
+    </div>
+
+    <div>
+      <label id="countryLbl" for="country">Country</label>
+      <select id="country" required>
+        <option value="">--</option>
+        <option value="JP">🇯🇵 Japan</option>
+        <option value="US">🇺🇸 United States</option>
+        <option value="KR">🇰🇷 Korea</option>
+        <option value="IN">🇮🇳 India</option>
+        <option value="FR">🇫🇷 France</option>
+        <option value="DE">🇩🇪 Germany</option>
+        <option value="BR">🇧🇷 Brazil</option>
+        <option value="PH">🇵🇭 Philippines</option>
+        <option value="TH">🇹🇭 Thailand</option>
+        <option value="GB">🇬🇧 United Kingdom</option>
+      </select>
+    </div>
+
+    <div>
+      <label id="levelLbl" for="level">Beatbox Level</label>
+      <div class="level-selection">
+        <select id="level" required>
+          <option value="">--</option>
+          <option value="beginner">💧 Beginner</option>
+          <option value="middle">🌱 Middle class</option>
+          <option value="advanced">🔥 Advanced</option>
+          <option value="top">🏆 Top Player</option>
+        </select>
+        <span class="info-icon">ℹ️
+          <span class="tooltip" id="levelTable"></span>
+        </span>
+      </div>
+    </div>
+
+    <button id="saveBtn" disabled>Save &amp; Go Lobby</button>
+    <p id="msg" class="notice"></p>
+  </div>
+
+  <script>
+    const i18n = {
+      en: {
+        title: 'Profile Setup',
+        nameLbl: 'Name',
+        countryLbl: 'Country',
+        levelLbl: 'Beatbox Level',
+        note: '* These descriptions are only examples.',
+        saveBtn: 'Save & Go Lobby',
+        saved: 'Saved! Redirecting…',
+        levelTable: `🏅 Beginner 💧
+ └ only basic three sounds / <1 yr / no battle experience / mostly spectator
+
+🏅 Middle-class 🌱
+ └ basics stable + some special sounds / 1–3 yrs / local battles
+
+🏅 Advanced 🔥
+ └ multiple advanced techniques / 3–5 yrs / mid-level contest placements
+
+🏅 Top Player 🏆
+ └ pro-level / 5+ yrs / national & international titles
+
+* These descriptions are only examples.`
+      },
+      ja: {
+        title: 'プロフィール登録',
+        nameLbl: '名前',
+        countryLbl: '国籍',
+        levelLbl: 'ビートボックスレベル',
+        note: '※ 上記はあくまで例です。目安として選択してください。',
+        saveBtn: '保存してロビーへ',
+        saved: '保存しました。ロビーへ移動します…',
+        levelTable: `🏅 ビギナー 💧
+ └ 基礎3音がやっと / 歴<1年 / バトル未経験 / 観戦メイン
+
+🏅 ミドルクラス 🌱
+ └ 基礎安定＋特殊音少し / 1–3年 / ローカル大会参加経験
+
+🏅 アドバンス 🔥
+ └ 上級テク複数 / 3–5年 / 中規模大会入賞経験
+
+🏅 トッププレイヤー 🏆
+ └ プロ級 / 5年以上 / 国内外主要大会の上位常連
+
+※ 上記はあくまで例です。目安として選択してください。`
+      },
+      es: {
+        title: 'Configuración de Perfil',
+        nameLbl: 'Nombre',
+        countryLbl: 'País',
+        levelLbl: 'Nivel de Beatbox',
+        note: '* Estas descripciones son solo ejemplos.',
+        saveBtn: 'Guardar e ir al Lobby',
+        saved: '¡Guardado! Redirigiendo…',
+        levelTable: `🏅 Principiante 💧
+ └ solo tres sonidos básicos / <1 año / sin experiencia en batallas / principalmente espectador
+
+🏅 Clase media 🌱
+ └ básicos estables + algunos sonidos especiales / 1-3 años / batallas locales
+
+🏅 Avanzado 🔥
+ └ múltiples técnicas avanzadas / 3-5 años / clasificaciones en concursos de nivel medio
+
+🏅 Jugador Top 🏆
+ └ nivel profesional / 5+ años / títulos nacionales e internacionales`
+      },
+      fr: {
+        title: 'Configuration du Profil',
+        nameLbl: 'Nom',
+        countryLbl: 'Pays',
+        levelLbl: 'Niveau de Beatbox',
+        note: '* Ces descriptions sont uniquement des exemples.',
+        saveBtn: 'Enregistrer et aller au Lobby',
+        saved: 'Enregistré ! Redirection…',
+        levelTable: `🏅 Débutant 💧
+ └ seulement trois sons basiques / <1 an / pas d'expérience de bataille / principalement spectateur
+
+🏅 Classe moyenne 🌱
+ └ bases stables + quelques sons spéciaux / 1-3 ans / batailles locales
+
+🏅 Avancé 🔥
+ └ plusieurs techniques avancées / 3-5 ans / placements dans des concours de niveau intermédiaire
+
+🏅 Joueur de haut niveau 🏆
+ └ niveau pro / 5+ ans / titres nationaux et internationaux`
+      },
+      zh: {
+        title: '个人资料设置',
+        nameLbl: '姓名',
+        countryLbl: '国家',
+        levelLbl: 'Beatbox水平',
+        note: '* 这些描述仅为示例。',
+        saveBtn: '保存并进入大厅',
+        saved: '已保存！正在重定向…',
+        levelTable: `🏅 初学者 💧
+ └ 仅掌握三种基本音 / 不到1年 / 无比赛经验 / 主要是观众
+
+🏅 中级选手 🌱
+ └ 基本功稳定+一些特殊音 / 1-3年 / 参加过地方比赛
+
+🏅 高级选手 🔥
+ └ 掌握多种高级技巧 / 3-5年 / 中型比赛获奖经历
+
+🏅 顶尖选手 🏆
+ └ 专业级别 / 5年以上 / 国内外比赛冠军`
+      },
+      ko: {
+        title: '프로필 설정',
+        nameLbl: '이름',
+        countryLbl: '국가',
+        levelLbl: '비트박스 레벨',
+        note: '* 이 설명들은 단지 예시입니다.',
+        saveBtn: '저장하고 로비로 가기',
+        saved: '저장됨! 리디렉션 중…',
+        levelTable: `🏅 초보자 💧
+ └ 기본 세 가지 소리만 / 1년 미만 / 배틀 경험 없음 / 주로 관람객
+
+🏅 중급자 🌱
+ └ 기본기 안정 + 일부 특수 소리 / 1-3년 / 로컬 배틀 경험
+
+🏅 고급자 🔥
+ └ 여러 고급 기술 보유 / 3-5년 / 중급 대회 입상 경력
+
+🏅 최상위 플레이어 🏆
+ └ 프로 수준 / 5년 이상 / 국내외 대회 상위권
+
+* 이 설명들은 단지 예시입니다.`
+      }
+    };
+
+    let lang = localStorage.getItem('locale') || 'en';
+    const sel = document.getElementById('langSelect');
+    sel.value = lang;
+
+    function applyTexts() {
+      const t = i18n[lang];
+      document.getElementById('title').textContent = t.title;
+      document.getElementById('nameLbl').textContent = t.nameLbl;
+      document.getElementById('countryLbl').textContent = t.countryLbl;
+      document.getElementById('levelLbl').textContent = t.levelLbl;
+      document.getElementById('levelTable').textContent = t.levelTable;
+      document.getElementById('saveBtn').textContent = t.saveBtn;
+      document.documentElement.lang = lang;
+    }
+
+    sel.addEventListener('change', e => {
+      lang = e.target.value;
+      localStorage.setItem('locale', lang);
+      applyTexts();
+    });
+    applyTexts();
+
+    // 入力検証
+    const nameI = document.getElementById('name'),
+          countryI = document.getElementById('country'),
+          levelI = document.getElementById('level'),
+          saveBtn = document.getElementById('saveBtn'),
+          msg = document.getElementById('msg');
+
+    function validate() {
+      saveBtn.disabled = !(nameI.value.trim() && countryI.value && levelI.value);
+    }
+    [nameI, countryI, levelI].forEach(el => el.addEventListener('input', validate));
+
+    // 既登録ユーザーはスキップ
+    (async () => {
+      const r = await fetch('/api/user');
+      if (r.ok) location.href = '/lobby.html';
+    })();
+
+    // 保存処理
+    saveBtn.addEventListener('click', async () => {
+      saveBtn.disabled = true;
+      const body = {
+        name: nameI.value.trim(),
+        country: countryI.value,
+        level: levelI.value
+      };
+      const res = await fetch('/api/user', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(body)
+      });
+      if (res.ok) {
+        msg.textContent = i18n[lang].saved;
+        setTimeout(() => location.href = '/lobby.html', 800);
+      } else {
+        const j = await res.json();
+        msg.textContent = 'Error: ' + (j.error || res.status);
+        saveBtn.disabled = false;
+      }
+    });
+  </script>
+</body>
+</html>

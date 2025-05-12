@@ -1,0 +1,1850 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>BeatNexus – Battle</title>
+  <link rel="preconnect" href="https://fonts.gstatic.com">
+  <link href="https://fonts.googleapis.com/css2?family=Russo+One&family=Inter:wght@400;600&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="/styles.css">
+  <style>
+    :root { --accent: #55dde0; --accent-dark: #33b5b8; }
+    body {
+      margin: 0;
+      background: var(--bg-1);
+      color: var(--text-1);
+      font-family: 'Inter', sans-serif;
+      min-height: 100vh;
+      position: relative;
+      overflow: hidden;
+      background: linear-gradient(135deg, #111111, #222222);
+    }
+    
+    /* タイトルスタイル */
+    #page-title {
+      font-family: 'Russo One', sans-serif;
+      text-align: center;
+      color: var(--accent);
+      font-size: 3rem;
+      margin: 0;
+      padding: 0.5rem 0;
+      text-shadow: 0 2px 10px rgba(85, 221, 224, 0.4);
+      position: absolute;
+      top: 0;
+      left: 0;
+      right: 0;
+      z-index: 50;
+      background: rgba(0,0,0,0.3);
+      backdrop-filter: blur(5px);
+    }
+    
+    /* モバイルではタイトルを小さく */
+    @media (max-width: 767px) {
+      #page-title {
+        font-size: 2rem;
+        padding: 0.3rem 0;
+      }
+      
+      #battle-wrap {
+        margin-top: 3rem;
+      }
+    }
+    
+    #overlay {
+      position: fixed;
+      inset: 0;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-family: 'Russo One', sans-serif;
+      font-size: 5rem;
+      color: var(--accent);
+      background: rgba(0, 0, 0, .8);
+      z-index: 100;
+    }
+    #battle-wrap {
+      text-align: center;
+      padding: 1rem;
+      width: 100%;
+      max-width: 1280px;
+    }
+    #phase {
+      font-family: 'Russo One', sans-serif;
+      font-size: 1.6rem;
+      margin-bottom: 0.5rem;
+      color: var(--accent);
+    }
+    .timer-container { 
+      margin: 1rem 0; 
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      flex-direction: column;
+      position: relative;
+    }
+    #timer {
+      font-family: 'Russo One', sans-serif;
+      font-size: 6rem;
+      color: var(--accent);
+      display: inline-block;
+      text-shadow: 0 2px 12px rgba(85, 221, 224, 0.4);
+    }
+    .unit {
+      font-family: 'Russo One', sans-serif;
+      font-size: 2rem;
+      color: var(--accent);
+      display: inline-block;
+      margin-left: 0.2rem;
+    }
+    #videos {
+      display: flex;
+      gap: 1.5rem;
+      justify-content: center;
+      width: 100%;
+    }
+    .video-wrap {
+      position: relative;
+      width: 45%;
+      min-width: 280px;
+      border-radius: var(--radius);
+      overflow: hidden;
+      box-shadow: 0 8px 24px rgba(0,0,0,0.6);
+      border: 2px solid rgba(255,255,255,0.1);
+    }
+    video {
+      width: 100%;
+      height: 100%;
+      border-radius: var(--radius);
+      object-fit: cover;
+      background-color: var(--bg-2);
+    }
+    .nameTag {
+      position: absolute;
+      bottom: 8px;
+      left: 50%;
+      transform: translateX(-50%);
+      background: rgba(0,0,0,0.6);
+      color: #fff;
+      padding: 4px 12px;
+      border-radius: 16px;
+      font-size: 0.9rem;
+      font-weight: 600;
+      z-index: 2;
+      backdrop-filter: blur(4px);
+      border: 1px solid rgba(255,255,255,0.1);
+    }
+    
+    /* PC版での名前タグのスタイル調整 */
+    @media (min-width: 768px) {
+      .nameTag {
+        font-size: 1rem;
+        padding: 6px 16px;
+      }
+    }
+    
+    /* カメラ無しの場合のスタイル */
+    .video-wrap.no-camera {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      flex-direction: column;
+      background-color: rgba(0,0,0,0.4);
+      /* 枠のサイズは維持 */
+      width: 100%;
+      min-width: 280px;
+      aspect-ratio: 16/9; /* 16:9のアスペクト比を維持 */
+    }
+    .video-wrap.no-camera .camera-placeholder {
+      font-size: 2.8rem;
+      margin-bottom: 0.5rem;
+      font-weight: bold;
+      text-align: center;
+      padding: 0 1rem;
+      color: var(--accent);
+      text-shadow: 0 2px 8px rgba(85, 221, 224, 0.5);
+    }
+    
+    /* PCで枠の大きさを維持 */
+    @media (min-width: 768px) {
+      .video-wrap.no-camera {
+        width: 48%;
+        max-width: none;
+        aspect-ratio: 16/9;
+      }
+      
+      .video-wrap.no-camera .camera-placeholder {
+        font-size: 3.5rem;
+      }
+    }
+    
+    /* モバイルでの調整 */
+    @media (max-width: 767px) {
+      #battle-wrap {
+        padding: 0.5rem;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        width: 100%;
+      }
+      
+      /* ビデオとタイマーをコンテナで囲む */
+      #videos {
+        display: flex;
+        flex-direction: column;
+        gap: 0.8rem;
+        width: 100%;
+        max-width: 500px;
+      }
+      
+      .video-wrap {
+        width: 100%;
+        min-width: auto;
+        max-height: 40vh; /* 高さを増やして表示サイズを大きく */
+      }
+      
+      /* PC用のタイマーを非表示 */
+      .pc-timer {
+        display: none !important;
+      }
+      
+      /* モバイル用のタイマーを表示 */
+      .mobile-timer {
+        display: flex !important;
+        background: rgba(0,0,0,0.4);
+        padding: 0.8rem;
+        border-radius: var(--radius);
+        border: 1px solid rgba(255,255,255,0.05);
+        backdrop-filter: blur(8px);
+        margin: 0.5rem 0;
+        box-shadow: 0 4px 12px rgba(0,0,0,0.4);
+        position: relative;
+        max-width: 320px; /* タイマーを大きく */
+        width: 100%;
+        align-self: center;
+        flex-direction: row;
+        align-items: center;
+        justify-content: center;
+      }
+      
+      /* タイマーコンテンツ */
+      .timer-content {
+        flex: 0 0 auto;
+        text-align: center;
+      }
+      
+      #mobile-phase {
+        font-family: 'Russo One', sans-serif;
+        font-size: 1.2rem; /* フォントサイズ大きく */
+        margin-bottom: 0.2rem;
+        color: var(--accent);
+      }
+      
+      #mobile-timer-box {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+      }
+      
+      #mobile-timer {
+        font-family: 'Russo One', sans-serif;
+        font-size: 4rem; /* フォントサイズ大きく */
+        color: var(--accent);
+        display: inline-block;
+        text-shadow: 0 2px 8px rgba(85, 221, 224, 0.4);
+      }
+      
+      .mobile-unit {
+        font-family: 'Russo One', sans-serif;
+        font-size: 1.5rem; /* フォントサイズ大きく */
+        color: var(--accent);
+        margin-left: 0.1rem;
+      }
+      
+      /* リアクションバーの表示切り替え */
+      .desktop-reaction {
+        display: none !important; /* デスクトップ用は非表示 */
+      }
+      
+      /* モバイル用リアクションバー */
+      .mobile-reaction {
+        display: flex !important;
+        position: relative;
+        margin: 10px auto 15px;
+        max-width: 320px; /* リアクションバーを大きく */
+        width: 100%;
+        flex-direction: row;
+        justify-content: center;
+        gap: 12px; /* ボタン間の余白を増やす */
+        background: rgba(0, 0, 0, 0.4);
+        padding: 10px 20px; /* パディングを増やす */
+        border-radius: 24px;
+        backdrop-filter: blur(8px);
+        border: 1px solid rgba(255,255,255,0.05);
+        z-index: 50;
+        left: 50%;
+        transform: translateX(-50%);
+      }
+      
+      .mobile-reaction button {
+        width: 48px; /* ボタンサイズを大きく */
+        height: 48px; /* ボタンサイズを大きく */
+        border: none;
+        border-radius: 50%;
+        background: rgba(0,0,0,0.2);
+        color: white;
+        font-size: 1.4rem; /* 文字サイズを大きく */
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        box-shadow: inset 0 -2px 5px rgba(0,0,0,0.2), 0 2px 4px rgba(0,0,0,0.4);
+        cursor: pointer;
+        transition: transform 0.2s, background-color 0.2s;
+      }
+      
+      .mobile-reaction button:active {
+        transform: scale(0.95);
+        background: var(--accent);
+      }
+      
+      /* 中断ボタン */
+      #abortBtn {
+        top: 4px;
+        left: 10px;
+        right: auto;
+        width: 36px;
+        height: 36px;
+        font-size: 1.1rem;
+      }
+      
+      /* モバイル用バトル終了ボタン表示 */
+      .mobile-battle-nav {
+        display: block;
+        position: absolute;
+      }
+      
+      /* バトル終了時のモバイルボタンを表示 */
+      #mobileBackToLobby {
+        left: -110px;
+      }
+      
+      #mobileNextBattle {
+        right: -110px;
+      }
+      
+      /* PC用のバトル終了ボタンを非表示 */
+      #battleEndButtons {
+        display: none !important;
+      }
+    }
+    
+    /* 超小型デバイス（iPhone SE等）用 */
+    @media (max-width: 380px) {
+      .video-wrap {
+        max-height: 35vh; /* 高さを大きくする */
+      }
+      
+      .mobile-timer {
+        max-width: 280px;
+        padding: 0.7rem;
+      }
+      
+      #mobile-timer {
+        font-size: 3.2rem; /* タイマーを大きく */
+      }
+      
+      #mobile-phase {
+        font-size: 1.1rem; /* フェーズテキストを大きく */
+      }
+      
+      .mobile-reaction button {
+        width: 42px; /* 小型画面でもボタンを大きめに */
+        height: 42px;
+        font-size: 1.3rem;
+      }
+      
+      /* タイマー横のボタンも小さく */
+      .mobile-battle-nav button {
+        padding: 0.5rem;
+        font-size: 0.8rem;
+      }
+      
+      #mobileBackToLobby {
+        left: -90px;
+      }
+      
+      #mobileNextBattle {
+        right: -90px;
+      }
+    }
+    
+    /* PC特有のレイアウト - 横並びとタイマー位置変更 */
+    @media (min-width: 768px) {
+      body {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        min-height: 100vh;
+        overflow-x: hidden;
+      }
+      
+      #battle-wrap {
+        width: 100%;
+        max-width: 1280px;
+        padding: 1rem;
+        margin-top: 5rem; /* タイトル分の余白 */
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+      }
+      
+      /* PC用のタイマーを表示 */
+      .pc-timer {
+        display: block !important;
+        margin: 0 0 1.5rem 0;
+        width: 100%;
+        text-align: center;
+      }
+      
+      /* モバイル用のタイマーを非表示 */
+      .mobile-timer {
+        display: none !important;
+      }
+      
+      /* PC版では映像を横並びの配置に変更 */
+      #videos {
+        display: flex;
+        flex-direction: row;
+        justify-content: center;
+        align-items: center;
+        gap: 0; /* くっついた状態 */
+        width: 100%;
+      }
+      
+      .video-wrap {
+        width: 48%;
+        max-width: none;
+        aspect-ratio: 16/9;
+        margin: 0;
+      }
+      
+      .video-wrap:first-child {
+        border-radius: var(--radius) 0 0 var(--radius); /* 左側の角だけ丸く */
+      }
+      
+      .video-wrap:last-child {
+        border-radius: 0 var(--radius) var(--radius) 0; /* 右側の角だけ丸く */
+      }
+      
+      /* PC版では相手のミュートUIを右下に配置 */
+      .video-wrap:last-child .audio-status {
+        left: auto;
+        right: 14px;
+      }
+      
+      /* デスクトップ用リアクションバーの表示 */
+      .desktop-reaction {
+        display: flex !important; /* デスクトップ用は表示 */
+      }
+      
+      .mobile-reaction {
+        display: none !important; /* モバイル用は非表示 */
+      }
+      
+      /* モバイル用のタイマー横ボタンを非表示 */
+      .mobile-battle-nav {
+        display: none !important;
+      }
+      
+      /* バトル終了時のボタン */
+      #battleEndButtons {
+        bottom: 40px;
+      }
+    }
+    
+    #timer-box {
+      height: 7rem;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    /* 接続状態表示用スタイル */
+    .connection-status {
+      position: fixed;
+      top: 16px;
+      left: 16px;
+      font-size: 0.75rem;
+      padding: 4px 8px;
+      background: rgba(0,0,0,0.7);
+      color: white;
+      border-radius: 12px;
+      z-index: 100;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+    .status-indicator {
+      width: 10px;
+      height: 10px;
+      border-radius: 50%;
+      background-color: #777;
+    }
+    .status-connecting { background-color: #ffcc00; }
+    .status-connected { background-color: #22cc44; }
+    .status-error { background-color: #ff3333; }
+
+    /* ミュートアイコン */
+    .mute-icon {
+      position: absolute;
+      left: 10px;
+      bottom: 10px;
+      font-size: 1.1rem;
+      color: #fff;
+      text-shadow: 0 1px 4px rgba(0,0,0,0.5);
+      user-select: none;
+      z-index: 3;
+      pointer-events: none;
+    }
+    @media (max-width: 767px) {
+      .mute-icon { font-size: 1rem; left: 6px; bottom: 6px; }
+    }
+    
+    /* ===== ★NEW: マイクステータス（左下） ===== */
+    .audio-status{
+      position:absolute;bottom:14px;left:14px;
+      width:42px;height:42px;border-radius:50%;
+      backdrop-filter:blur(6px);
+      display:flex;align-items:center;justify-content:center;
+      transition:.3s ease;
+      box-shadow:0 0 6px transparent;
+      z-index: 5;
+    }
+    .audio-status svg{width:22px;height:22px;fill:var(--accent);transition:.3s;}
+    .audio-status.unmuted{
+      background:rgba(85,221,224,0.2);
+      animation:pulseMic 1.4s infinite;
+    }
+    .audio-status.muted{
+      background:rgba(255,47,79,0.2);box-shadow:0 0 10px rgba(255,47,79,0.6);
+    }
+    .audio-status.muted svg{fill:#ff2f4f;}
+    @keyframes pulseMic{
+      0%{box-shadow:0 0 4px rgba(85,221,224,0.2);}
+      50%{box-shadow:0 0 10px rgba(85,221,224,0.8);}
+      100%{box-shadow:0 0 4px rgba(85,221,224,0.2);}
+    }
+    
+    /* モバイル版での調整 */
+    @media (max-width: 767px) {
+      .audio-status {
+        width: 36px;
+        height: 36px;
+        bottom: 10px;
+        left: 10px;
+      }
+      .audio-status svg {
+        width: 18px;
+        height: 18px;
+      }
+    }
+    
+    /* 音に反応する背景ライト */
+    .audio-reactive-bg {
+      position: absolute;
+      inset: 0;
+      border-radius: inherit;
+      background: radial-gradient(circle at center, rgba(85,221,224,0) 30%, rgba(85,221,224,0) 70%);
+      z-index: 0;
+      opacity: 0;
+      transition: opacity 0.1s, background 0.1s;
+      pointer-events: none;
+    }
+    
+    /* アクティブ時のネオン効果が増幅 */
+    .video-wrap.active-turn .audio-reactive-bg.active {
+      box-shadow: 0 0 30px 5px rgba(85,221,224,0.7);
+    }
+    
+    /* スピーカーアイコン（ボリューム表示用） */
+    .volume-indicator {
+      position: absolute;
+      right: 10px;
+      bottom: 10px;
+      font-size: 1.2rem;
+      color: #55dde0;
+      text-shadow: 0 0 10px rgba(85,221,224,0.8);
+      opacity: 0;
+      transition: opacity 0.3s;
+      z-index: 3;
+    }
+    .volume-indicator.active {
+      opacity: 1;
+    }
+    
+    /* 回転アニメーション追加 */
+    @keyframes rotate {
+      from { transform: rotate(0deg); }
+      to { transform: rotate(360deg); }
+    }
+    
+    /* 地球儀ローダーのスタイル修正 */
+    .earth-loader {
+      position: relative;
+      width: 80px;
+      height: 80px;
+      margin: 0 auto 1.5rem;
+    }
+    .earth-loader svg {
+      position: absolute;
+    }
+    .earth-loader svg:first-child {
+      animation: rotate 8s linear infinite;
+    }
+    .earth-loader svg:nth-child(2) {
+      animation: rotate 12s linear reverse infinite;
+    }
+    .earth-loader svg:nth-child(3) {
+      animation: rotate 15s linear infinite;
+    }
+    .earth-loader svg:nth-child(4) {
+      animation: rotate 10s linear reverse infinite;
+    }
+    
+    /* マッチングキャンセル確認ダイアログ */
+    #cancelConfirmDialog {
+      position: fixed;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      background: rgba(0,0,0,0.9);
+      border: 1px solid rgba(85,221,224,0.5);
+      border-radius: 12px;
+      padding: 1.5rem;
+      z-index: 10000;
+      box-shadow: 0 0 20px rgba(0,0,0,0.8), 0 0 30px rgba(85,221,224,0.2);
+      text-align: center;
+      max-width: 90%;
+      width: 320px;
+      display: none;
+    }
+    
+    #cancelConfirmDialog h3 {
+      color: #55dde0;
+      margin-top: 0;
+      font-size: 1.4rem;
+    }
+    
+    #cancelConfirmDialog p {
+      color: white;
+      margin-bottom: 1.5rem;
+    }
+    
+    .dialog-buttons {
+      display: flex;
+      gap: 1rem;
+      justify-content: center;
+    }
+    
+    .dialog-buttons button {
+      padding: 0.5rem 1rem;
+      border-radius: 6px;
+      border: none;
+      cursor: pointer;
+      font-weight: 600;
+      min-width: 100px;
+    }
+    
+    .confirm-btn {
+      background: #ff3a3a;
+      color: white;
+    }
+    
+    .cancel-btn {
+      background: #555;
+      color: white;
+    }
+
+    /* 新しい3Dドットローダーのスタイル */
+    .dot-loader {
+      width: 200px;
+      height: 200px;
+      perspective: 200px;
+      position: relative;
+      margin: 0 auto 1.5rem;
+    }
+
+    .dot {
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      width: 120px;
+      height: 120px;
+      margin-top: -60px;
+      margin-left: -60px;
+      border-radius: 100px;
+      border: 40px outset #1e3f57;
+      transform-origin: 50% 50%;
+      transform: rotateX(24deg) rotateY(20deg) rotateZ(0deg) translateZ(-25px);
+      background-color: transparent;
+      animation: dot1 1000ms cubic-bezier(.49,.06,.43,.85) infinite;
+    }
+
+    .dot:nth-child(2) {
+      width: 140px;
+      height: 140px;
+      margin-top: -70px;
+      margin-left: -70px;
+      border-width: 30px;
+      border-color: #447891;
+      animation-name: dot2;
+      animation-delay: 75ms;
+      box-shadow: inset 0 0 15px 0 rgba(0, 0, 0, 0.1);
+      transform: rotateX(24deg) rotateY(20deg) rotateZ(0deg) translateZ(-25px);
+    }
+
+    .dot:nth-child(3) {
+      width: 160px;
+      height: 160px;
+      margin-top: -80px;
+      margin-left: -80px;
+      border-width: 20px;
+      border-color: #6bb2cd;
+      animation-name: dot3;
+      animation-delay: 150ms;
+      box-shadow: inset 0 0 15px 0 rgba(0, 0, 0, 0.1);
+      transform: rotateX(24deg) rotateY(20deg) rotateZ(0deg) translateZ(-25px);
+    }
+
+    @keyframes dot1 {
+      0% {
+        border-color: #1e3f57;
+        transform: rotateX(24deg) rotateY(20deg) rotateZ(0deg) translateZ(-25px);
+      }
+
+      50% {
+        border-color: #1e574f;
+        transform: rotateX(20deg) rotateY(20deg) rotateZ(50deg) translateZ(0px);
+      }
+
+      100% {
+        border-color: #1e3f57;
+        transform: rotateX(24deg) rotateY(20deg) rotateZ(0deg) translateZ(-25px);
+      }
+    }
+
+    @keyframes dot2 {
+      0% {
+        border-color: #447891;
+        box-shadow: inset 0 0 15px 0 rgba(255, 255, 255, 0.2);
+        transform: rotateX(24deg) rotateY(20deg) rotateZ(0deg) translateZ(-25px);
+      }
+
+      50% {
+        border-color: #449180;
+        box-shadow: inset 0 0 15px 0 rgba(0, 0, 0, 0.8);
+        transform: rotateX(20deg) rotateY(20deg) rotateZ(50deg) translateZ(0px);
+      }
+
+      100% {
+        border-color: #447891;
+        box-shadow: inset 0 0 15px 0 rgba(255, 255, 255, 0.2);
+        transform: rotateX(24deg) rotateY(20deg) rotateZ(0deg) translateZ(-25px);
+      }
+    }
+
+    @keyframes dot3 {
+      0% {
+        border-color: #6bb2cd;
+        box-shadow: inset 0 0 15px 0 rgba(0, 0, 0, 0.1);
+        transform: rotateX(24deg) rotateY(20deg) rotateZ(0deg) translateZ(-25px);
+      }
+
+      50% {
+        border-color: #6bcdb2;
+        box-shadow: inset 0 0 15px 0 rgba(0, 0, 0, 0.8);
+        transform: rotateX(20deg) rotateY(20deg) rotateZ(50deg) translateZ(0px);
+      }
+
+      100% {
+        border-color: #6bb2cd;
+        box-shadow: inset 0 0 15px 0 rgba(0, 0, 0, 0.1);
+        transform: rotateX(24deg) rotateY(20deg) rotateZ(0deg) translateZ(-25px);
+      }
+    }
+  </style>
+</head>
+<body>
+  <div id="overlay" hidden></div>
+  <button id="abortBtn" title="退出" onclick="window.location.href='/lobby.html';">
+    <svg width="32" height="32" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+      <rect x="3" y="3" width="13" height="18" rx="2" ry="2" stroke="#fff" stroke-width="2" fill="none"/>
+      <path d="M16 17l5-5-5-5" stroke="#fff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+      <path d="M21 12H9" stroke="#fff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+    </svg>
+  </button>
+  
+  <!-- タイトル部分を追加 -->
+  <h1 id="page-title">BeatNexus</h1>
+  
+  <div id="battle-wrap">
+    <!-- PC版ではタイマーを上に配置、モバイルでは順番を変える -->
+    <div class="timer-container pc-timer">
+      <h2 id="phase">Waiting…</h2>
+      <div id="timer-box">
+        <span id="timer">60</span><span class="unit">s</span>
+      </div>
+    </div>
+    
+    <div id="videos">
+      <div class="video-wrap">
+        <video id="localVideo" autoplay muted playsinline></video>
+        <div id="localName" class="nameTag"></div>
+        <!-- ミュート表示（新スタイル） -->
+        <div class="audio-status muted" id="localMuteIcon">
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24">
+            <path d="M12,2A3,3,0,0,0,9,5V12a3,3,0,0,0,6,0V5A3,3,0,0,0,12,2Z"/>
+            <path d="M19,11a1,1,0,0,0-2,0,5,5,0,0,1-10,0,1,1,0,0,0-2,0,7,7,0,0,0,6,6.92V20H8a1,1,0,0,0,0,2h8a1,1,0,0,0,0-2H13V17.92A7,7,0,0,0,19,11Z"/>
+          </svg>
+      </div>
+        </div>
+        
+      <!-- モバイル用タイマー（カメラ間に配置） -->
+      <div class="timer-container mobile-timer">
+        <div class="timer-content">
+          <h2 id="mobile-phase">Waiting…</h2>
+          <div id="mobile-timer-box">
+            <span id="mobile-timer">60</span><span class="mobile-unit">s</span>
+        </div>
+        </div>
+      </div>
+      
+      <div class="video-wrap">
+        <video id="remoteVideo" autoplay playsinline></video>
+        <div id="remoteName" class="nameTag"></div>
+        <!-- 相手のミュート表示（新スタイル） -->
+        <div class="audio-status muted" id="remoteMuteIcon">
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24">
+            <path d="M12,2A3,3,0,0,0,9,5V12a3,3,0,0,0,6,0V5A3,3,0,0,0,12,2Z"/>
+            <path d="M19,11a1,1,0,0,0-2,0,5,5,0,0,1-10,0,1,1,0,0,0-2,0,7,7,0,0,0,6,6.92V20H8a1,1,0,0,0,0,2h8a1,1,0,0,0,0-2H13V17.92A7,7,0,0,0,19,11Z"/>
+          </svg>
+      </div>
+        <!-- 音に反応するバックライト -->
+        <div class="audio-reactive-bg" id="remoteAudioBg"></div>
+        <!-- 音量インジケーター（スピーカーアイコン） -->
+        <span class="volume-indicator" id="volumeIndicator">🔊</span>
+    </div>
+  </div>
+
+    <!-- モバイル用リアクションバー（リモート映像の下に配置） -->
+    <div class="reaction-bar mobile-reaction">
+    <button data-emoji="🔥">🔥</button>
+    <button data-emoji="👍">👍</button>
+    <button data-emoji="👏">👏</button>
+    <button data-emoji="❤️">❤️</button>
+  </div>
+  </div>
+
+  <!-- デスクトップ用リアクションバー -->
+  <div class="reaction-bar desktop-reaction">
+    <button data-emoji="🔥">🔥</button>
+    <button data-emoji="👍">👍</button>
+    <button data-emoji="👏">👏</button>
+    <button data-emoji="❤️">❤️</button>
+  </div>
+  <div class="reaction-overlay" id="reactionOverlay"></div>
+  
+  <!-- 再マッチング用ポップアップ -->
+  <div id="rematchPopup">
+    <div class="lobby-container">
+      <button id="closeRematchBtn">×</button>
+      <h2>🎤 次の対戦</h2>
+      <div id="matchControls">
+        <button id="startRematchBtn">🚀 マッチング開始</button>
+        <button id="cancelRematchBtn" style="display:none">❌ キャンセル</button>
+        <div class="earth-loader" id="rematchLoader" style="display:none">
+          <svg viewBox="0 0 100 100"><circle cx="50" cy="50" r="40" fill="var(--landcolor)"/></svg>
+          <svg viewBox="0 0 100 100"><circle cx="30" cy="30" r="15" fill="var(--watercolor)"/></svg>
+          <svg viewBox="0 0 100 100"><circle cx="70" cy="70" r="20" fill="var(--landcolor)"/></svg>
+          <svg viewBox="0 0 100 100"><circle cx="50" cy="20" r="10" fill="var(--watercolor)"/></svg>
+        </div>
+        <p id="matchStatus" class="status">マッチング開始ボタンを押して次の対戦相手を探す</p>
+      </div>
+    </div>
+  </div>
+
+  <!-- マッチングキャンセル確認ダイアログ -->
+  <div id="cancelConfirmDialog">
+    <h3>マッチングをキャンセル</h3>
+    <p>マッチング処理を中止してもよろしいですか？</p>
+    <div class="dialog-buttons">
+      <button class="cancel-btn" id="cancelDialogNo">いいえ</button>
+      <button class="confirm-btn" id="cancelDialogYes">はい</button>
+    </div>
+  </div>
+
+  <!-- Next Battleボタン（バトル終了時のみ右上に表示） -->
+  <button id="nextBattleBtn" style="display:none; position:absolute; top:10px; right:16px; z-index:61;">次の対戦へ</button>
+
+  <script src="/socket.io/socket.io.js"></script>
+  <script>
+    // 多言語対応
+    const i18n = {
+      en: {
+        waiting: "Waiting…",
+        abortBtn: "Exit",
+        ready: "Are you ready..?",
+        battleFinished: "🎉 Battle Finished!",
+        chatEnabled: "Mic is now enabled. Enjoy the conversation!",
+        opponentAborted: "Opponent aborted. Returning to lobby.",
+        switch: "Switch!!",
+        you: "You",
+        opponent: "Opponent",
+        turnText: "{name}'s turn (Round {round}/2)",
+        backToLobby: "Back to Lobby",
+        nextBattle: "Next Battle",
+        cancelMatch: "Cancel",
+        cancelMatchTitle: "Cancel Matching",
+        cancelMatchConfirm: "Are you sure you want to cancel the matching process?",
+        yes: "Yes",
+        no: "No",
+        matchingTitle: "Matching...",
+        matchingSubtext: "Looking for your next opponent"
+      },
+      ja: {
+        waiting: "待機中…",
+        abortBtn: "退出",
+        ready: "準備はいい？",
+        battleFinished: "🎉 バトル終了！",
+        chatEnabled: "マイクが有効になりました。会話を楽しんでください！",
+        opponentAborted: "相手が中断しました。ロビーに戻ります。",
+        switch: "交代！！",
+        you: "あなた",
+        opponent: "相手",
+        turnText: "{name}のターン（ラウンド{round}/2）",
+        backToLobby: "ロビーに戻る",
+        nextBattle: "次の対戦へ",
+        cancelMatch: "キャンセル",
+        cancelMatchTitle: "マッチングをキャンセル",
+        cancelMatchConfirm: "マッチング処理を中止してもよろしいですか？",
+        yes: "はい",
+        no: "いいえ",
+        matchingTitle: "マッチング中…",
+        matchingSubtext: "次の対戦相手を探しています"
+      },
+      es: {
+        waiting: "Esperando…",
+        abortBtn: "Salir",
+        ready: "¿Estás listo..?",
+        battleFinished: "🎉 ¡Batalla Terminada!",
+        chatEnabled: "¡Micrófono activado! Disfruta la conversación.",
+        opponentAborted: "El oponente canceló. Volviendo al lobby.",
+        switch: "¡¡Cambio!!",
+        you: "Tú",
+        opponent: "Oponente",
+        turnText: "Turno de {name} (Ronda {round}/2)",
+        backToLobby: "Volver al Lobby",
+        nextBattle: "Siguiente Batalla",
+        cancelMatch: "Cancelar",
+        cancelMatchTitle: "Cancelar Búsqueda",
+        cancelMatchConfirm: "¿Estás seguro de que quieres cancelar la búsqueda de oponente?",
+        yes: "Sí",
+        no: "No",
+        matchingTitle: "Buscando...",
+        matchingSubtext: "Buscando tu próximo oponente"
+      },
+      fr: {
+        waiting: "En attente…",
+        abortBtn: "Quitter",
+        ready: "Es-tu prêt..?",
+        battleFinished: "🎉 Combat Terminé !",
+        chatEnabled: "Micro activé. Profitez de la conversation !",
+        opponentAborted: "L'adversaire a abandonné. Retour au lobby.",
+        switch: "Changement !!",
+        you: "Vous",
+        opponent: "Adversaire",
+        turnText: "Tour de {name} (Manche {round}/2)",
+        backToLobby: "Retour au Lobby",
+        nextBattle: "Combat Suivant",
+        cancelMatch: "Annuler",
+        cancelMatchTitle: "Annuler la Recherche",
+        cancelMatchConfirm: "Êtes-vous sûr de vouloir annuler la recherche d'adversaire ?",
+        yes: "Oui",
+        no: "Non",
+        matchingTitle: "Recherche en cours...",
+        matchingSubtext: "Recherche de votre prochain adversaire"
+      },
+      zh: {
+        waiting: "等待中…",
+        abortBtn: "退出",
+        ready: "准备好了吗..?",
+        battleFinished: "🎉 对战结束！",
+        chatEnabled: "麦克风已启用。开始畅谈吧！",
+        opponentAborted: "对手已中止。返回大厅。",
+        switch: "交换!!",
+        you: "你",
+        opponent: "对手",
+        turnText: "{name}的回合（第{round}/2轮）",
+        backToLobby: "返回大厅",
+        nextBattle: "下一场对战",
+        cancelMatch: "取消",
+        cancelMatchTitle: "取消匹配",
+        cancelMatchConfirm: "确定要取消匹配过程吗？",
+        yes: "是",
+        no: "否",
+        matchingTitle: "匹配中...",
+        matchingSubtext: "正在寻找您的下一位对手"
+      },
+      ko: {
+        waiting: "대기 중…",
+        abortBtn: "나가기",
+        ready: "준비됐나요..?",
+        battleFinished: "🎉 배틀 종료!",
+        chatEnabled: "마이크가 활성화되었습니다. 대화를 즐기세요!",
+        opponentAborted: "상대방이 중단했습니다. 로비로 돌아갑니다.",
+        switch: "교체!!",
+        you: "나",
+        opponent: "상대방",
+        turnText: "{name}의 턴 (라운드 {round}/2)",
+        backToLobby: "로비로 돌아가기",
+        nextBattle: "다음 배틀",
+        cancelMatch: "취소",
+        cancelMatchTitle: "매칭 취소",
+        cancelMatchConfirm: "매칭 프로세스를 취소하시겠습니까?",
+        yes: "예",
+        no: "아니오",
+        matchingTitle: "매칭 중...",
+        matchingSubtext: "다음 상대를 찾고 있습니다"
+      }
+    };
+    
+    // 言語設定
+    let lang = localStorage.getItem('locale') || 'en';
+    
+    function updateTexts() {
+      const texts = i18n[lang] || i18n.en;
+      document.getElementById('phase').textContent = texts.waiting;
+      // モバイル用のフェーズテキストも更新
+      if (document.getElementById('mobile-phase')) {
+        document.getElementById('mobile-phase').textContent = texts.waiting;
+      }
+      document.documentElement.lang = lang;
+    }
+    
+    updateTexts();
+
+    const TURN_TIME = 60;
+    const overlay = document.getElementById('overlay');
+    const phaseEl = document.getElementById('phase');
+    const timerEl = document.getElementById('timer');
+    const localVid = document.getElementById('localVideo');
+    const remoteVid = document.getElementById('remoteVideo');
+    const localName = document.getElementById('localName');
+    const remoteName = document.getElementById('remoteName');
+    const abortBtn = document.getElementById('abortBtn');
+    const reactionOverlay = document.getElementById('reactionOverlay');
+    
+    // モバイル用要素の参照も取得
+    const mobilePhaseEl = document.getElementById('mobile-phase');
+    const mobileTimerEl = document.getElementById('mobile-timer');
+
+    let localStream, pc, countdownId;
+    const socket = io();
+    const roomId = new URLSearchParams(location.search).get('room');
+    let order, names, countries;
+
+    // マイク制御関数
+    function setMicEnabled(enabled) {
+      if (!localStream) return;
+      localStream.getAudioTracks().forEach(t => t.enabled = enabled);
+      // localMuteIconが初期化されていれば更新
+      if (localMuteIcon) {
+        updateLocalMuteIcon(!enabled);
+      }
+      
+      // 自分のミュート状態を相手に送信
+      socket.emit('muteStatus', roomId, !enabled);
+    }
+
+    // メディア＆WebRTC初期化
+    (async () => {
+      const cam = localStorage.getItem('cameraOn') === 'true';
+      try {
+        localStream = await navigator.mediaDevices.getUserMedia({ audio: true, video: cam });
+        if (cam) {
+          localVid.srcObject = localStream;
+        } else {
+          // カメラなしの場合はプレースホルダー表示を準備
+          setupNoCamera(document.querySelector('.video-wrap:first-child'));
+        }
+      } catch (err) {
+        // カメラ取得エラーの場合もプレースホルダー表示
+        console.error('カメラアクセスエラー:', err);
+        setupNoCamera(document.querySelector('.video-wrap:first-child'));
+      }
+      // 初期はミュート
+      setMicEnabled(false);
+
+      // より強固なICE設定（STUNとTURNサーバーを両方設定）
+      const iceServers = [
+        { urls: 'stun:stun.l.google.com:19302' },
+        { urls: 'stun:stun1.l.google.com:19302' },
+        { urls: 'stun:stun2.l.google.com:19302' },
+        // 無料のTURNサーバー（OpenRelayサービス）
+        {
+          urls: 'turn:openrelay.metered.ca:80',
+          username: 'openrelayproject',
+          credential: 'openrelayproject'
+        },
+        {
+          urls: 'turn:openrelay.metered.ca:443',
+          username: 'openrelayproject',
+          credential: 'openrelayproject'
+        }
+      ];
+
+      // WebRTC接続設定
+      pc = new RTCPeerConnection({ 
+        iceServers: iceServers, 
+        iceCandidatePoolSize: 10, // ICE候補のプール数を増やす
+        iceTransportPolicy: 'all' // 全てのICE接続方法を許可
+      });
+      
+      // 接続状態変更の監視
+      pc.oniceconnectionstatechange = () => {
+        console.log(`ICE接続状態: ${pc.iceConnectionState}`);
+        
+        // 接続失敗時の処理
+        if (pc.iceConnectionState === 'failed' || pc.iceConnectionState === 'disconnected') {
+          console.warn('WebRTC接続が失敗または切断されました。再接続を試みます...');
+          
+          // 5秒後に再接続を試みる
+          setTimeout(() => {
+            if (pc.iceConnectionState !== 'connected' && pc.iceConnectionState !== 'completed') {
+              console.log('再接続を開始します...');
+              // 再接続要求をサーバーに送信
+              socket.emit('requestReconnect', roomId);
+            }
+          }, 5000);
+        }
+        
+        // 接続成功時
+        if (pc.iceConnectionState === 'connected' || pc.iceConnectionState === 'completed') {
+          console.log('WebRTC接続が成功しました');
+        }
+      };
+      
+      // ICEの収集状態監視
+      pc.onicegatheringstatechange = () => {
+        console.log(`ICE収集状態: ${pc.iceGatheringState}`);
+      };
+      
+      // シグナリング状態監視
+      pc.onsignalingstatechange = () => {
+        console.log(`シグナリング状態: ${pc.signalingState}`);
+      };
+      
+      // ローカルストリームの追加
+      if (localStream) {
+        localStream.getTracks().forEach(track => {
+          console.log(`ローカルトラックを追加: ${track.kind}`);
+          pc.addTrack(track, localStream);
+        });
+      }
+      
+      // リモートトラックを受け取った時の処理
+      pc.ontrack = (event) => {
+        console.log(`リモートトラックを受信: ${event.track.kind}`);
+        
+        // リモートストリームをビデオに設定
+        if (event.streams && event.streams[0]) {
+          const remoteStream = event.streams[0];
+          
+          // 既に設定されているか確認
+          if (remoteVid.srcObject !== remoteStream) {
+            console.log('リモートビデオにストリームを設定しています');
+            remoteVid.srcObject = remoteStream;
+            
+            // リモート映像読み込み確認
+            remoteVid.onloadedmetadata = () => {
+              console.log('リモートビデオのメタデータが読み込まれました');
+            };
+            
+            // リモート映像再生開始確認
+            remoteVid.onplaying = () => {
+              console.log('リモートビデオの再生が開始されました');
+              // プレースホルダーを非表示にする
+              const remotePlaceholder = document.querySelector('.video-wrap:last-child .camera-placeholder');
+              if (remotePlaceholder) {
+                remotePlaceholder.style.display = 'none';
+              }
+              
+              // videoを表示する
+              remoteVid.style.display = 'block';
+              
+              // no-cameraクラスを削除
+              const remoteVideoWrap = document.querySelector('.video-wrap:last-child');
+              if (remoteVideoWrap) {
+                remoteVideoWrap.classList.remove('no-camera');
+              }
+              
+              // 相手の音声が来たらオーディオリアクティブエフェクトを開始
+              startAudioReactiveLight();
+            };
+          }
+        } else {
+          console.error('リモートストリームがありません');
+          setupNoCamera(document.querySelector('.video-wrap:last-child'));
+        }
+      };
+      
+      // ICE候補生成時のイベント
+      pc.onicecandidate = (event) => {
+        if (event.candidate) {
+          console.log('ICE候補を送信します');
+          socket.emit('ice', roomId, event.candidate);
+        } else {
+          console.log('すべてのICE候補の収集が完了しました');
+        }
+      };
+      
+      // 部屋に参加
+      socket.emit('joinRoom', roomId);
+    })();
+
+    // シグナリング
+    socket.on('ready', async id => {
+      if (socket.id === id) {
+        console.log('オファーを作成します');
+        try {
+          const offer = await pc.createOffer({
+            offerToReceiveAudio: true,
+            offerToReceiveVideo: true
+          });
+          console.log('ローカル記述をセットします');
+        await pc.setLocalDescription(offer);
+          console.log('オファーを送信します');
+        socket.emit('offer', roomId, offer);
+        } catch (err) {
+          console.error('オファー作成エラー:', err);
+        }
+      }
+    });
+    
+    socket.on('offer', async o => {
+      console.log('オファーを受信しました');
+      try {
+        console.log('リモート記述をセットします');
+      await pc.setRemoteDescription(o);
+        console.log('アンサーを作成します');
+      const ans = await pc.createAnswer();
+        console.log('ローカル記述をセットします');
+      await pc.setLocalDescription(ans);
+        console.log('アンサーを送信します');
+      socket.emit('answer', roomId, ans);
+      } catch (err) {
+        console.error('アンサー作成エラー:', err);
+      }
+    });
+    
+    socket.on('answer', async a => {
+      console.log('アンサーを受信しました');
+      try {
+        if (pc.signalingState !== 'stable') {
+          await pc.setRemoteDescription(a);
+          console.log('リモート記述をセットしました');
+        }
+      } catch (err) {
+        console.error('アンサー設定エラー:', err);
+      }
+    });
+    
+    socket.on('ice', async c => {
+      if (c) {
+        console.log('ICE候補を受信しました');
+        try {
+          await pc.addIceCandidate(c);
+          console.log('ICE候補を追加しました');
+        } catch (err) {
+          console.error('ICE候補追加エラー:', err);
+        }
+      }
+    });
+    
+    // 再接続要求を受信
+    socket.on('requestReconnect', async () => {
+      console.log('再接続要求を受信しました');
+      
+      // 既存のPeerConnection接続を閉じる
+      if (pc) {
+        pc.close();
+      }
+      
+      // 新しい接続を開始する
+      // (WebRTC初期化の処理を再度呼び出すなど)
+      // ここでは簡略化のため、ページを再読み込みする
+      window.location.reload();
+    });
+
+    // カメラがない場合の処理
+    function setupNoCamera(videoWrap) {
+      if (!videoWrap) return;
+      
+      // video要素を非表示に
+      const videoEl = videoWrap.querySelector('video');
+      if (videoEl) videoEl.style.display = 'none';
+      
+      // 小さい名前タグを非表示に
+      const nameTag = videoWrap.querySelector('.nameTag');
+      if (nameTag) nameTag.style.display = 'none';
+      
+      // クラスを追加
+      videoWrap.classList.add('no-camera');
+      
+      // すでにプレースホルダーがあれば何もしない
+      if (videoWrap.querySelector('.camera-placeholder')) return;
+      
+      // プレースホルダー要素を作成
+      const placeholder = document.createElement('div');
+      placeholder.className = 'camera-placeholder';
+      
+      // 名前タグの内容を取得 (後でsetNameTagsで設定される)
+      placeholder.textContent = nameTag ? nameTag.textContent : '';
+      
+      // 動的に更新するため、監視する
+      if (nameTag) {
+        const observer = new MutationObserver((mutations) => {
+          placeholder.textContent = nameTag.textContent;
+        });
+        observer.observe(nameTag, { childList: true, subtree: true, characterData: true });
+      }
+      
+      // プレースホルダーを追加
+      videoWrap.appendChild(placeholder);
+    }
+
+    // バトルシーケンス制御
+    socket.on('startSequence', async data => {
+      console.log('バトル開始シーケンス受信:', data);
+      order = data.order; 
+      names = data.names; 
+      countries = data.countries || {};
+      console.log('名前とオーダー:', names, order);
+      setNameTags();
+      const texts = i18n[lang] || i18n.en;
+      console.log('カウントダウン開始...');
+      try {
+      await showSequence(texts.ready, 1000, ['3','2','1'], 1000, 'BEATBOX!!!!', 500);
+        console.log('カウントダウン完了!');
+      startTurn(1);
+      } catch (err) {
+        console.error('カウントダウンエラー:', err);
+        // エラー時はオーバーレイをリセットして続行
+        overlay.style.display = 'none';
+        overlay.hidden = true;
+        startTurn(1);
+      }
+    });
+    socket.on('switchTurn', data => {
+      order = data.order; 
+      names = data.names;
+      countries = data.countries || {};
+      const texts = i18n[lang] || i18n.en;
+      showSequence(texts.switch, 1000).then(() => {
+        startTurn(data.turn);
+        // ターン切り替え時に名前タグも更新（カメラなしの表示も更新される）
+        setNameTags();
+      });
+    });
+    socket.on('battleFinished', () => {
+      clearInterval(countdownId);
+      // バトル終了時はマイクをオンにして会話できるようにする
+      setMicEnabled(true);
+      const texts = i18n[lang] || i18n.en;
+      phaseEl.textContent = texts.battleFinished;
+      if (mobilePhaseEl) {
+        mobilePhaseEl.textContent = texts.battleFinished;
+      }
+      
+      // バトル終了メッセージの後に、会話可能なことを表示
+      setTimeout(() => {
+        const chatText = texts.chatEnabled || "マイクが有効になりました。会話を楽しんでください！";
+        const chatNotice = document.createElement('div');
+        chatNotice.textContent = chatText;
+        chatNotice.style.color = '#55dde0';
+        chatNotice.style.fontSize = '1rem';
+        chatNotice.style.marginTop = '0.5rem';
+        
+        // PC用とモバイル用の両方に通知を追加
+        phaseEl.insertAdjacentElement('afterend', chatNotice.cloneNode(true));
+        if (mobilePhaseEl) {
+          mobilePhaseEl.insertAdjacentElement('afterend', chatNotice);
+        }
+      }, 1500);
+      
+      document.querySelectorAll('.video-wrap').forEach(wrap => {
+        wrap.classList.remove('active-turn');
+      });
+      const nextBtn = document.getElementById('nextBattleBtn');
+      nextBtn.textContent = texts.nextBattle;
+      nextBtn.style.display = 'block';
+      nextBtn.onclick = () => {
+        // ロビー画面と同じUIを表示
+        showMatchingUI();
+        // サーバーにマッチング要求を送信
+        socket.emit('joinBattleQueue');
+      };
+      window.battleEnded = true;
+    });
+    
+    // タイマー更新を受信して表示を更新
+    socket.on('timerTick', sec => { 
+      timerEl.textContent = Math.max(sec, 0); 
+      // モバイル用タイマーも更新
+      if (mobileTimerEl) {
+        mobileTimerEl.textContent = Math.max(sec, 0);
+      }
+    });
+
+    // 他ユーザーが中断したとき
+    socket.on('battleAborted', () => {
+      clearInterval(countdownId);
+      setMicEnabled(false);
+      const texts = i18n[lang] || i18n.en;
+      alert(texts.opponentAborted);
+      window.location.href = '/lobby.html';
+    });
+
+    function setNameTags() {
+      const texts = i18n[lang] || i18n.en;
+      const myCountry = countries[socket.id] || '';
+      const countryFlag = myCountry ? `${getCountryFlag(myCountry)} ` : '';
+      localName.innerHTML = `${countryFlag}${names[socket.id] || texts.you}`;
+      
+      const opp = Object.keys(names).find(id => id !== socket.id);
+      const oppCountry = countries[opp] || '';
+      const oppFlag = oppCountry ? `${getCountryFlag(oppCountry)} ` : '';
+      remoteName.innerHTML = `${oppFlag}${names[opp] || texts.opponent}`;
+      
+      // カメラがない場合のプレースホルダーも更新
+      const localPlaceholder = document.querySelector('.video-wrap:first-child .camera-placeholder');
+      const remotePlaceholder = document.querySelector('.video-wrap:last-child .camera-placeholder');
+      
+      if (localPlaceholder) {
+        localPlaceholder.textContent = localName.innerHTML;
+      }
+      
+      if (remotePlaceholder) {
+        remotePlaceholder.textContent = remoteName.innerHTML;
+      }
+    }
+
+    // 国コードから国旗の絵文字を取得する関数
+    function getCountryFlag(countryCode) {
+      // 国コードを地域識別子に変換（Unicode国旗絵文字用）
+      const codePoints = countryCode
+        .toUpperCase()
+        .split('')
+        .map(char => 127397 + char.charCodeAt(0));
+      return String.fromCodePoint(...codePoints);
+    }
+
+    function startTurn(turn) {
+      clearInterval(countdownId);
+      let sec = TURN_TIME;
+      
+      // 初期値を表示（PC用とモバイル用両方）
+      timerEl.textContent = sec;
+      if (mobileTimerEl) {
+        mobileTimerEl.textContent = sec;
+      }
+      
+      // ターンの設定
+      const actor = order[(turn - 1) % 2];
+      const isMine = actor === socket.id;
+      
+      // ネオン効果の適用
+      updateActiveUserHighlight(isMine);
+      
+      // ターンごとにミュート切替
+      setMicEnabled(isMine);
+      const texts = i18n[lang] || i18n.en;
+      const turnText = texts.turnText
+        .replace('{name}', names[actor])
+        .replace('{round}', Math.ceil(turn/2));
+      
+      // PC用とモバイル用のフェーズテキストを更新
+      phaseEl.textContent = turnText;
+      if (mobilePhaseEl) {
+        mobilePhaseEl.textContent = turnText;
+      }
+      
+      // 自分のターンの場合だけカウントダウンを管理
+      if (isMine) {
+        countdownId = setInterval(() => {
+          sec--;
+          // 自分の画面には直接表示（PC用とモバイル用両方）
+          timerEl.textContent = Math.max(sec, 0);
+          if (mobileTimerEl) {
+            mobileTimerEl.textContent = Math.max(sec, 0);
+          }
+          
+          // 他のクライアントにのみ値を送信
+          socket.emit('timerTick', roomId, sec);
+          
+          if (sec <= 0) {
+            clearInterval(countdownId);
+            socket.emit('turnEnd', roomId);
+          }
+        }, 1000);
+      }
+    }
+    
+    // アクティブなユーザーのハイライト表示を更新
+    function updateActiveUserHighlight(isMyTurn) {
+      // 一度すべてのハイライトをクリア
+      document.querySelectorAll('.video-wrap').forEach(wrap => {
+        wrap.classList.remove('active-turn');
+      });
+      
+      // アクティブなユーザーにハイライトを追加
+      if (isMyTurn) {
+        // 自分のターンなら自分をハイライト
+        document.querySelector('.video-wrap:first-child').classList.add('active-turn');
+      } else {
+        // 相手のターンなら相手をハイライト
+        document.querySelector('.video-wrap:last-child').classList.add('active-turn');
+      }
+    }
+
+    async function showSequence(first, ms1, list = [], ms2 = 0, last = null, ms3 = 0) {
+      console.log('シーケンス表示:', first);
+      overlay.hidden = false;
+      overlay.style.display = 'flex';
+      overlay.textContent = first;
+      await delay(ms1);
+      for (const t of list) {
+        console.log('カウントダウン:', t);
+        overlay.textContent = t;
+        await delay(ms2);
+      }
+      if (last) {
+        console.log('最終表示:', last);
+        overlay.textContent = last;
+        await delay(ms3);
+      }
+      console.log('シーケンス終了、オーバーレイ非表示化');
+      overlay.style.display = 'none';
+      overlay.hidden = true;
+    }
+    const delay = ms => new Promise(r => setTimeout(r, ms));
+
+    // リアクション表示＆送受信
+    function showReaction(e) {
+      reactionOverlay.textContent = e;
+      reactionOverlay.style.opacity = '1';
+      setTimeout(() => reactionOverlay.style.opacity = '0', 600);
+    }
+    
+    // デスクトップ用リアクションバーのボタンにイベントリスナーを追加
+    document.querySelectorAll('.desktop-reaction button').forEach(btn => {
+      btn.addEventListener('click', () => {
+        const em = btn.getAttribute('data-emoji');
+        showReaction(em);
+        socket.emit('reaction', roomId, em);
+      });
+    });
+    
+    // モバイル用リアクションボタンにもイベントリスナーを追加
+    document.querySelectorAll('.mobile-reaction button').forEach(btn => {
+      btn.addEventListener('click', () => {
+        const em = btn.getAttribute('data-emoji');
+        showReaction(em);
+        socket.emit('reaction', roomId, em);
+      });
+    });
+    
+    socket.on('reaction', showReaction);
+
+    // バトル終了後のボタン関連の処理
+    const battleEndButtons = document.getElementById('battleEndButtons');
+    const backToLobbyBtn = document.getElementById('backToLobbyBtn');
+    const rematchPopup = document.getElementById('rematchPopup');
+    const closeRematchBtn = document.getElementById('closeRematchBtn');
+    const startRematchBtn = document.getElementById('startRematchBtn');
+    const cancelRematchBtn = document.getElementById('cancelRematchBtn');
+    const rematchLoader = document.getElementById('rematchLoader');
+    const matchStatus = document.getElementById('matchStatus');
+    
+    // ポップアップを閉じるボタン
+    closeRematchBtn.addEventListener('click', () => {
+      rematchPopup.style.display = 'none';
+    });
+    
+    // マッチング開始ボタン
+    startRematchBtn.addEventListener('click', () => {
+      startRematchBtn.style.display = 'none';
+      cancelRematchBtn.style.display = 'block';
+      rematchLoader.style.display = 'flex';
+      matchStatus.textContent = texts.statusMatch || 'マッチング中...';
+      
+      // サーバーにマッチング要求を送信
+      socket.emit('joinBattleQueue');
+    });
+    
+    // マッチングキャンセルボタン
+    cancelRematchBtn.addEventListener('click', () => {
+      cancelRematchBtn.style.display = 'none';
+      startRematchBtn.style.display = 'block';
+      rematchLoader.style.display = 'none';
+      matchStatus.textContent = texts.statusReady || '再度マッチングを行いますか？';
+      
+      // マッチングをキャンセル
+      socket.emit('cancelBattleQueue');
+    });
+    
+    // マッチング成功時の処理を追加
+    socket.on('matched', ({ roomId }) => {
+      rematchLoader.style.display = 'none';
+      // 新しい部屋へ移動
+      location.href = `/battle.html?room=${encodeURIComponent(roomId)}`;
+      // マッチングUIを消す
+      const overlay = document.getElementById('matchingOverlay');
+      if (overlay) overlay.remove();
+    });
+
+    // ロビー画面と同じUIを表示する関数
+    function showMatchingUI() {
+      // 画面全体をロビー風の半透明オーバーレイで覆う
+      let overlay = document.getElementById('matchingOverlay');
+      if (!overlay) {
+        overlay = document.createElement('div');
+        overlay.id = 'matchingOverlay';
+        overlay.style.position = 'fixed';
+        overlay.style.inset = '0';
+        overlay.style.background = 'rgba(0,0,0,0.85)';
+        overlay.style.zIndex = '9999';
+        overlay.style.display = 'flex';
+        overlay.style.flexDirection = 'column';
+        overlay.style.alignItems = 'center';
+        overlay.style.justifyContent = 'center';
+        
+        const texts = i18n[lang] || i18n.en;
+        const cancelText = texts.cancelMatch || "キャンセル";
+        const matchingTitle = texts.matchingTitle || "マッチング中…";
+        const matchingSubtext = texts.matchingSubtext || "次の対戦相手を探しています";
+        
+        overlay.innerHTML = `
+          <div style="display:flex;flex-direction:column;align-items:center;gap:2rem;">
+            <div class="dot-loader">
+              <div class="dot"></div>
+              <div class="dot"></div>
+              <div class="dot"></div>
+            </div>
+            <h2 style="color:#fff;font-size:2rem;font-family:'Russo One',sans-serif;">${matchingTitle}</h2>
+            <p style="color:#fff;font-size:1.1rem;">${matchingSubtext}</p>
+            <button id="cancelMatchingBtn" style="margin-top:2rem;padding:0.7rem 2rem;background:#ff3a3a;color:white;border:none;border-radius:8px;font-weight:600;cursor:pointer;box-shadow:0 2px 8px rgba(0,0,0,0.3);font-size:1.1rem;">${cancelText}</button>
+          </div>
+        `;
+      }
+      document.body.appendChild(overlay);
+      
+      // キャンセルボタンのイベントリスナーを追加
+      const cancelBtn = document.getElementById('cancelMatchingBtn');
+      if (cancelBtn) {
+        cancelBtn.addEventListener('click', () => {
+          // キャンセル確認ダイアログを表示
+          showCancelConfirmDialog();
+        });
+      }
+    }
+    
+    // キャンセル確認ダイアログの表示
+    function showCancelConfirmDialog() {
+      const dialog = document.getElementById('cancelConfirmDialog');
+      if (!dialog) return;
+      
+      // 多言語対応
+      const texts = i18n[lang] || i18n.en;
+      dialog.querySelector('h3').textContent = texts.cancelMatchTitle || "マッチングをキャンセル";
+      dialog.querySelector('p').textContent = texts.cancelMatchConfirm || "マッチング処理を中止してもよろしいですか？";
+      dialog.querySelector('#cancelDialogNo').textContent = texts.no || "いいえ";
+      dialog.querySelector('#cancelDialogYes').textContent = texts.yes || "はい";
+      
+      // ダイアログを表示
+      dialog.style.display = 'block';
+      
+      // イベントリスナーを追加
+      document.getElementById('cancelDialogNo').onclick = () => {
+        dialog.style.display = 'none';
+      };
+      
+      document.getElementById('cancelDialogYes').onclick = () => {
+        // マッチングをキャンセル
+        socket.emit('cancelBattleQueue');
+        
+        // ダイアログとオーバーレイを非表示
+        dialog.style.display = 'none';
+        const overlay = document.getElementById('matchingOverlay');
+        if (overlay) overlay.remove();
+      };
+    }
+
+    // --- 音量バー＆ミュート表示 ---
+    let audioContext, analyser, micSource, volumeInterval;
+    let localMuteIcon, remoteMuteIcon, remoteAudioBg, volumeIndicator;
+    
+    // ミュートアイコンの切り替え
+    function updateLocalMuteIcon(isMuted) {
+      if (!localMuteIcon) return;
+      if (isMuted) {
+        localMuteIcon.classList.remove('unmuted');
+        localMuteIcon.classList.add('muted');
+      } else {
+        localMuteIcon.classList.remove('muted');
+        localMuteIcon.classList.add('unmuted');
+      }
+    }
+    
+    // 相手の音声出力の音量測定＆ライト効果
+    function startAudioReactiveLight() {
+      if (!remoteVid.srcObject) return;
+      
+      if (!audioContext) {
+        audioContext = new (window.AudioContext || window.webkitAudioContext)();
+      }
+      
+      if (!analyser) {
+        // 相手の音声ストリームから音量を分析
+        const remoteStream = remoteVid.srcObject;
+        const source = audioContext.createMediaStreamSource(remoteStream);
+        analyser = audioContext.createAnalyser();
+        analyser.fftSize = 256;
+        source.connect(analyser);
+      }
+      
+      const dataArray = new Uint8Array(analyser.fftSize);
+      
+      function update() {
+        analyser.getByteTimeDomainData(dataArray);
+        // 音量（振幅の最大値）を計算
+        let max = 0;
+        for (let i = 0; i < dataArray.length; i++) {
+          const v = Math.abs(dataArray[i] - 128);
+          if (v > max) max = v;
+        }
+        // 0〜100%で表示
+        const percent = Math.min(100, Math.round((max / 128) * 100));
+        if (remoteAudioBg) {
+          // 音量に応じてバックライトの強度を変える
+          const intensity = percent / 100;
+          // 15%以上の音量でエフェクト表示
+          if (intensity > 0.15) {
+            // グラデーションのサイズと明るさを音量に応じて変更
+            const size = 70 + (intensity * 30); // 70%〜100%のサイズ
+            const opacity = Math.min(0.7, intensity * 1.2); // 最大70%の不透明度
+            
+            // 背景のグラデーションと不透明度を更新
+            remoteAudioBg.style.background = `radial-gradient(circle at center, rgba(85,221,224,${opacity * 0.5}) ${size/3}%, rgba(85,221,224,${opacity * 0.2}) ${size}%)`;
+            remoteAudioBg.style.opacity = '1';
+            
+            // スピーカーアイコンを表示
+            if (volumeIndicator) {
+              volumeIndicator.classList.add('active');
+            }
+          } else {
+            // 音が小さい場合はエフェクトを消す
+            remoteAudioBg.style.opacity = '0';
+            
+            // スピーカーアイコンを非表示
+            if (volumeIndicator) {
+              volumeIndicator.classList.remove('active');
+            }
+          }
+        }
+        
+        if (volumeInterval) requestAnimationFrame(update);
+      }
+      
+      if (!volumeInterval) {
+        volumeInterval = true;
+        update();
+      }
+    }
+    function stopAudioReactiveLight() {
+      volumeInterval = false;
+      if (remoteAudioBg) {
+        remoteAudioBg.style.opacity = '0';
+      }
+    }
+
+    // DOMコンテンツがロードされた後に実行
+    document.addEventListener('DOMContentLoaded', function() {
+      console.log('DOM loaded - リセット処理開始');
+      
+      // オーバーレイの強制リセット
+      const overlay = document.getElementById('overlay');
+      if (overlay) {
+        console.log('オーバーレイをリセット');
+        overlay.style.display = 'none';
+        overlay.hidden = true;
+      }
+      
+      // 音量バー＆ミュート関連の要素初期化
+      localMuteIcon = document.getElementById('localMuteIcon');
+      remoteMuteIcon = document.getElementById('remoteMuteIcon');
+      remoteAudioBg = document.getElementById('remoteAudioBg');
+      volumeIndicator = document.getElementById('volumeIndicator');
+      
+      // 初期ミュート状態を設定
+      if (localMuteIcon) {
+        updateLocalMuteIcon(true);
+      }
+      
+      // 相手の音量バー初期設定
+      if (remoteAudioBg) {
+        remoteAudioBg.style.opacity = '0';
+      }
+      
+      // 退出ボタンのテキストを多言語対応
+      const abortBtn = document.getElementById('abortBtn');
+      if (abortBtn) {
+        const texts = i18n[lang] || i18n.en;
+        abortBtn.title = texts.abortBtn;
+      }
+    });
+
+    // socket.io通信デバッグ
+    socket.on('connect', () => {
+      console.log('Socket.IO接続成功!', socket.id);
+    });
+    socket.on('connect_error', (error) => {
+      console.error('Socket.IO接続エラー:', error);
+    });
+    socket.on('disconnect', (reason) => {
+      console.warn('Socket.IO切断:', reason);
+    });
+
+    // サーバーからの部屋参加応答確認
+    socket.on('joinedRoom', (data) => {
+      console.log('部屋に参加しました:', data);
+    });
+    
+    // 相手のミュート状態を受信
+    socket.on('muteStatus', (isMuted) => {
+      updateRemoteMuteIcon(isMuted);
+    });
+
+    // 相手のミュートアイコンの切り替え
+    function updateRemoteMuteIcon(isMuted) {
+      if (!remoteMuteIcon) return;
+      if (isMuted) {
+        remoteMuteIcon.classList.remove('unmuted');
+        remoteMuteIcon.classList.add('muted');
+      } else {
+        remoteMuteIcon.classList.remove('muted');
+        remoteMuteIcon.classList.add('unmuted');
+      }
+    }
+  </script>
+</body>
+</html>

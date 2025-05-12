@@ -1,0 +1,556 @@
+<!-- public/battle.html – Battle ＋ リアルタイムチャット対応 -->
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <title>BeatNexus – Battle</title>
+  <link rel="stylesheet" href="/styles.css">
+  <style>
+    body { margin:0; font-family:sans-serif; background: linear-gradient(135deg, #111111, #222222); color: white; }
+    #overlay {
+      position:fixed; inset:0; display:flex; align-items:center; justify-content:center;
+      font-family:'Russo One',sans-serif; font-size:5rem; color:#00d26a;
+      background:rgba(0,0,0,.8); z-index:100;
+    }
+    #battle-wrap { text-align:center; padding:2rem; }
+    .video-wrap {
+      position:relative; width:45%;
+    }
+    .nameTag {
+      position:absolute; bottom:8px; left:50%; transform:translateX(-50%);
+      background:rgba(0,0,0,.6); color:#fff; padding:2px 8px; border-radius:4px;
+      font-size:1rem; font-family:'Inter',sans-serif;
+    }
+    #chat-wrap {
+      position:fixed; right:1rem; top:1rem; width:300px; bottom:1rem;
+      display:flex; flex-direction:column; border:1px solid #ccc; background:#fff;
+      z-index:50;
+    }
+    #chat-messages {
+      flex:1; overflow-y:auto; padding:0.5rem; font-size:0.9rem;
+    }
+    #chat-form {
+      display:flex; border-top:1px solid #ccc;
+    }
+    #chat-form input {
+      flex:1; padding:0.5rem; border:none; outline:none;
+    }
+    #chat-form button {
+      padding:0.5rem 1rem; border:none; background:#00d26a; color:#fff; cursor:pointer;
+    }
+    #langSelect {
+      position: absolute;
+      top: 10px;
+      left: 10px;
+      z-index: 60;
+      padding: 0.3rem 0.5rem;
+      border-radius: 4px;
+      background: rgba(40, 40, 40, 0.85);
+      color: #ffffff;
+      border: 1px solid rgba(255, 255, 255, 0.3);
+      font-weight: 500;
+      box-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
+    }
+    
+    /* バトル終了時のボタン */
+    #battleEndButtons {
+      position: fixed;
+      bottom: 30px;
+      left: 50%;
+      transform: translateX(-50%);
+      display: none; /* 初期状態は非表示 */
+      flex-direction: row;
+      gap: 1rem;
+      z-index: 150;
+    }
+    #battleEndButtons button {
+      padding: 0.8rem 1.5rem;
+      font-size: 1rem;
+      font-weight: 600;
+      border: none;
+      border-radius: 8px;
+      cursor: pointer;
+      box-shadow: 0 4px 8px rgba(0,0,0,0.3);
+      transition: transform 0.2s, background-color 0.2s;
+    }
+    #backToLobbyBtn {
+      background-color: #555;
+      color: white;
+    }
+    #backToLobbyBtn:hover {
+      background-color: #666;
+      transform: translateY(-2px);
+    }
+    #rematchBtn {
+      background-color: #00d26a;
+      color: black;
+    }
+    #rematchBtn:hover {
+      background-color: #00b25a;
+      transform: translateY(-2px);
+    }
+
+    /* リマッチ用のロビーポップアップ */
+    #rematchPopup {
+      display: none;
+      position: fixed;
+      inset: 0;
+      z-index: 200;
+      background: rgba(0,0,0,0.8);
+      align-items: center;
+      justify-content: center;
+    }
+    #rematchPopup .lobby-container {
+      position: relative;
+      width: 90vw;
+      max-width: 450px;
+      background: rgba(255,255,255,0.08);
+      backdrop-filter: blur(12px);
+      border-radius: 8px;
+      padding: 1.5rem;
+      box-shadow: 0 8px 24px rgba(0,0,0,0.6);
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 1rem;
+      border: 1px solid rgba(255,255,255,0.1);
+    }
+    #closeRematchBtn {
+      position: absolute;
+      top: 10px;
+      right: 10px;
+      width: 30px;
+      height: 30px;
+      border-radius: 50%;
+      background: rgba(255,255,255,0.1);
+      color: white;
+      border: none;
+      font-size: 1.2rem;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+    }
+    #closeRematchBtn:hover {
+      background: rgba(255,255,255,0.2);
+    }
+    .earth-loader {
+      --watercolor: #4aa4e0;
+      --landcolor: #6dbf4b;
+      display: none;
+      width: 3rem;
+      height: 3rem;
+      background-color: var(--watercolor);
+      position: relative;
+      overflow: hidden;
+      border-radius: 50%;
+      border: .15em solid white;
+      box-shadow: inset 0 .4em rgba(255,255,255,0.25), inset 0 -.4em rgba(0,0,0,0.25);
+      align-items: center;
+      justify-content: center;
+    }
+    .earth-loader svg { position: absolute; width: 2.5rem; height: auto; }
+    .earth-loader svg:nth-child(1) { bottom: -0.8rem; animation: round1 5s infinite linear .6s; }
+    .earth-loader svg:nth-child(2) { top: -1.2rem; animation: round1 5s infinite linear; }
+    .earth-loader svg:nth-child(3) { top: -1rem; animation: round2 5s infinite linear; }
+    .earth-loader svg:nth-child(4) { bottom: -0.9rem; animation: round2 5s infinite linear .6s; }
+    @keyframes round1 { 0%{left:-.8rem;}30%{left:-2rem;opacity:1;}31%{opacity:0;}35%{left:3rem;}45%{opacity:1;}100%{left:-.8rem;} }
+    @keyframes round2 { 0%{left:1rem;}75%{left:-3rem;opacity:1;}76%{opacity:0;}80%{opacity:1;}100%{left:1rem;} }
+  </style>
+  <script src="/socket.io/socket.io.js"></script>
+</head>
+<body>
+  <div id="overlay" hidden></div>
+  <select id="langSelect">
+    <option value="en">EN</option>
+    <option value="ja">日本語</option>
+    <option value="es">ES</option>
+    <option value="fr">FR</option>
+    <option value="zh">中文</option>
+    <option value="ko">한국어</option>
+  </select>
+
+  <div id="battle-wrap">
+    <h2 id="phase">Waiting…</h2>
+    <div style="font-size:3rem;margin:1rem;">
+      <span id="timer">60</span>s
+    </div>
+    <div id="videos" style="display:flex;gap:1rem;justify-content:center;flex-wrap:wrap;">
+      <div class="video-wrap">
+        <video id="localVideo" autoplay muted playsinline style="width:100%;border-radius:12px;"></video>
+        <div id="localName" class="nameTag"></div>
+      </div>
+      <div class="video-wrap">
+        <video id="remoteVideo" autoplay playsinline style="width:100%;border-radius:12px;"></video>
+        <div id="remoteName" class="nameTag"></div>
+      </div>
+    </div>
+  </div>
+
+  <div id="chat-wrap">
+    <div id="chat-messages"></div>
+    <form id="chat-form">
+      <input id="chat-input" autocomplete="off" placeholder="メッセージを入力…" />
+      <button type="submit" id="sendButton">送信</button>
+    </form>
+  </div>
+  
+  <!-- バトル終了時に表示するボタン -->
+  <div id="battleEndButtons">
+    <button id="backToLobbyBtn">ロビーに戻る</button>
+    <button id="rematchBtn">再度マッチング</button>
+  </div>
+  
+  <!-- 再マッチング用ポップアップ -->
+  <div id="rematchPopup">
+    <div class="lobby-container">
+      <button id="closeRematchBtn">×</button>
+      <h2>🎤 再マッチング</h2>
+      <div id="matchControls">
+        <button id="startRematchBtn" style="padding:0.8rem 1.5rem;font-size:1rem;font-weight:600;border:none;border-radius:8px;background:#00d26a;color:#000;box-shadow:0 4px 8px rgba(0,0,0,0.3);cursor:pointer;">
+          🚀 マッチング開始
+        </button>
+        <button id="cancelRematchBtn" style="display:none;padding:0.8rem 1.5rem;font-size:1rem;font-weight:600;border:none;border-radius:8px;background:#ff5555;color:#fff;box-shadow:0 4px 8px rgba(0,0,0,0.3);cursor:pointer;">
+          ❌ キャンセル
+        </button>
+        <div class="earth-loader" id="rematchLoader">
+          <svg viewBox="0 0 100 100"><circle cx="50" cy="50" r="40" fill="var(--landcolor)"/></svg>
+          <svg viewBox="0 0 100 100"><circle cx="30" cy="30" r="15" fill="var(--watercolor)"/></svg>
+          <svg viewBox="0 0 100 100"><circle cx="70" cy="70" r="20" fill="var(--landcolor)"/></svg>
+          <svg viewBox="0 0 100 100"><circle cx="50" cy="20" r="10" fill="var(--watercolor)"/></svg>
+        </div>
+        <p id="matchStatus" class="status" style="font-size:0.9rem;text-align:center;margin:0.5rem 0;">再度マッチングを行いますか？</p>
+      </div>
+    </div>
+  </div>
+
+<script>
+// 多言語対応
+const i18n = {
+  en: {
+    waiting: "Waiting…",
+    ready: "Are you ready..?",
+    battleFinished: "🎉 Battle Finished!",
+    switch: "Switch!!",
+    you: "You",
+    opponent: "Opponent",
+    turnText: "{name}'s turn ({round}/2)",
+    inputPlaceholder: "Type a message...",
+    sendButton: "Send"
+  },
+  ja: {
+    waiting: "待機中…",
+    ready: "準備はいい？",
+    battleFinished: "🎉 バトル終了！",
+    switch: "交代！！",
+    you: "あなた",
+    opponent: "相手",
+    turnText: "{name} のターン ({round}/2)",
+    inputPlaceholder: "メッセージを入力…",
+    sendButton: "送信"
+  },
+  es: {
+    waiting: "Esperando…",
+    ready: "¿Estás listo..?",
+    battleFinished: "🎉 ¡Batalla Terminada!",
+    switch: "¡¡Cambio!!",
+    you: "Tú",
+    opponent: "Oponente",
+    turnText: "Turno de {name} ({round}/2)",
+    inputPlaceholder: "Escribe un mensaje...",
+    sendButton: "Enviar"
+  },
+  fr: {
+    waiting: "En attente…",
+    ready: "Es-tu prêt..?",
+    battleFinished: "🎉 Combat Terminé !",
+    switch: "Changement !!",
+    you: "Vous",
+    opponent: "Adversaire",
+    turnText: "Tour de {name} ({round}/2)",
+    inputPlaceholder: "Tapez un message...",
+    sendButton: "Envoyer"
+  },
+  zh: {
+    waiting: "等待中…",
+    ready: "准备好了吗..?",
+    battleFinished: "🎉 对战结束！",
+    switch: "交换!!",
+    you: "你",
+    opponent: "对手",
+    turnText: "{name}的回合 ({round}/2)",
+    inputPlaceholder: "输入消息...",
+    sendButton: "发送"
+  },
+  ko: {
+    waiting: "대기 중…",
+    ready: "준비됐나요..?",
+    battleFinished: "🎉 배틀 종료!",
+    switch: "교체!!",
+    you: "나",
+    opponent: "상대방",
+    turnText: "{name}의 턴 ({round}/2)",
+    inputPlaceholder: "메시지 입력...",
+    sendButton: "보내기"
+  }
+};
+
+// 言語設定
+let lang = localStorage.getItem('locale') || 'ja';
+const langSelect = document.getElementById('langSelect');
+langSelect.value = lang;
+langSelect.addEventListener('change', e => {
+  lang = e.target.value;
+  localStorage.setItem('locale', lang);
+  updateTexts();
+});
+
+function updateTexts() {
+  const texts = i18n[lang] || i18n.en;
+  document.getElementById('phase').textContent = texts.waiting;
+  document.getElementById('chat-input').placeholder = texts.inputPlaceholder;
+  document.getElementById('sendButton').textContent = texts.sendButton;
+  document.documentElement.lang = lang;
+  
+  // ユーザーが既に設定されている場合は名前タグを更新
+  if (names && socket && socket.id) {
+    setNameTags();
+  }
+}
+
+updateTexts();
+
+const TURN_TIME = 60;
+
+// UI
+const overlay      = document.getElementById('overlay');
+const phaseEl      = document.getElementById('phase');
+const timerEl      = document.getElementById('timer');
+const localVid     = document.getElementById('localVideo');
+const remoteVid    = document.getElementById('remoteVideo');
+const localNameTag = document.getElementById('localName');
+const remoteNameTag= document.getElementById('remoteName');
+const chatWrap     = document.getElementById('chat-wrap');
+const chatMsgs     = document.getElementById('chat-messages');
+const chatForm     = document.getElementById('chat-form');
+const chatInput    = document.getElementById('chat-input');
+
+// State
+let localStream=null, pc, countdownId;
+const socket = io();
+const roomId = new URLSearchParams(location.search).get('room');
+let order, names, countries;
+
+// 1) Media & joinRoom
+(async ()=>{
+  try{
+    localStream = await navigator.mediaDevices.getUserMedia({audio:true,video:true});
+  } catch {
+    try { localStream = await navigator.mediaDevices.getUserMedia({audio:true,video:false}); }
+    catch { localStream = null; }
+  }
+  if (localStream) localVid.srcObject = localStream;
+  pc = new RTCPeerConnection({iceServers:[{urls:'stun:stun.l.google.com:19302'}]});
+  localStream?.getTracks().forEach(t=>pc.addTrack(t,localStream));
+  pc.ontrack = ({streams:[s]}) => remoteVid.srcObject = s;
+  pc.onicecandidate = ({candidate}) => candidate && socket.emit('ice',roomId,candidate);
+
+  socket.emit('joinRoom', roomId);
+})();
+
+// 2) Signalling
+socket.on('ready', async id => {
+  if (socket.id === id) {
+    const off = await pc.createOffer(); await pc.setLocalDescription(off);
+    socket.emit('offer', roomId, off);
+  }
+});
+socket.on('offer', async o => {
+  await pc.setRemoteDescription(o);
+  const ans = await pc.createAnswer(); await pc.setLocalDescription(ans);
+  socket.emit('answer', roomId, ans);
+});
+socket.on('answer', a => pc.setRemoteDescription(a));
+socket.on('ice', c => c && pc.addIceCandidate(c));
+
+// 3) 初回シーケンス
+socket.on('startSequence', async data => {
+  order = data.order; 
+  names = data.names; 
+  countries = data.countries || {};
+  setNameTags();
+  const texts = i18n[lang] || i18n.en;
+  await showSequence(texts.ready,1000,['3','2','1'],1000,'BEATBOX!!!!',500);
+  startTurn(1);
+});
+
+// 4) ターン切替
+socket.on('switchTurn', data => {
+  order = data.order; 
+  names = data.names;
+  countries = data.countries || {};
+  setNameTags();
+  const texts = i18n[lang] || i18n.en;
+  showSequence(texts.switch,1000).then(()=> startTurn(data.turn));
+});
+
+// 5) Battle 終了
+socket.on('battleFinished', () => {
+  clearInterval(countdownId);
+  const texts = i18n[lang] || i18n.en;
+  phaseEl.textContent = texts.battleFinished;
+  
+  // バトル終了時にボタンを表示
+  document.getElementById('battleEndButtons').style.display = 'flex';
+});
+
+// 6) 共有タイマー受信
+socket.on('timerTick', sec => {
+  timerEl.textContent = Math.max(sec, 0);
+});
+
+// 7) チャット受信
+socket.on('chatMessage', data => {
+  const div = document.createElement('div');
+  div.innerHTML = `<strong>${data.name}:</strong> ${data.text}`;
+  chatMsgs.appendChild(div);
+  chatMsgs.scrollTop = chatMsgs.scrollHeight;
+});
+
+// チャット送信
+chatForm.addEventListener('submit', e => {
+  e.preventDefault();
+  const text = chatInput.value.trim();
+  if (!text) return;
+  socket.emit('chatMessage', { roomId, text });
+  chatInput.value = '';
+});
+
+// ===== functions =====
+function setNameTags(){
+  const texts = i18n[lang] || i18n.en;
+  
+  const myCountry = countries[socket.id] || '';
+  const countryFlag = myCountry ? `${getCountryFlag(myCountry)} ` : '';
+  localNameTag.innerHTML = `${countryFlag}${names[socket.id] || texts.you}`;
+  
+  const oppId = Object.keys(names).find(id=>id!==socket.id);
+  const oppCountry = countries[oppId] || '';
+  const oppFlag = oppCountry ? `${getCountryFlag(oppCountry)} ` : '';
+  remoteNameTag.innerHTML = `${oppFlag}${names[oppId] || texts.opponent}`;
+}
+
+// 国コードから国旗の絵文字を取得する関数
+function getCountryFlag(countryCode) {
+  // 国コードを地域識別子に変換（Unicode国旗絵文字用）
+  const codePoints = countryCode
+    .toUpperCase()
+    .split('')
+    .map(char => 127397 + char.charCodeAt(0));
+  return String.fromCodePoint(...codePoints);
+}
+
+function startTurn(turn){
+  clearInterval(countdownId);
+  let sec = TURN_TIME;
+  
+  // 初期値を表示
+  timerEl.textContent = sec;
+  
+  const idx      = (turn-1)%2;
+  const actorId  = order[idx];
+  const roundNum = Math.ceil(turn/2);
+  const texts = i18n[lang] || i18n.en;
+  const turnText = texts.turnText
+    .replace('{name}', names[actorId])
+    .replace('{round}', roundNum);
+  phaseEl.textContent = turnText;
+  
+  // 自分のターンの場合だけカウントダウンを管理
+  if (socket.id === actorId) {
+    countdownId = setInterval(()=>{
+      sec--;
+      // 自分の画面には直接表示
+      timerEl.textContent = Math.max(sec, 0);
+      
+      // 他のクライアントにのみ値を送信
+      socket.emit('timerTick', roomId, sec);
+      
+      if (sec <= 0) {
+        clearInterval(countdownId);
+        socket.emit('turnEnd', roomId);
+      }
+    },1000);
+  }
+}
+
+async function showSequence(firstText, firstMs, list=[], eachMs=1000, lastText='', lastMs=0){
+  overlay.hidden = false; overlay.style.display = 'flex';
+  overlay.textContent = firstText; await delay(firstMs);
+  for(const txt of list){ overlay.textContent = txt; await delay(eachMs); }
+  if(lastText){ overlay.textContent = lastText; await delay(lastMs); }
+  overlay.style.display = 'none'; overlay.hidden = true;
+}
+
+const delay = ms => new Promise(r => setTimeout(r,ms));
+
+// バトル終了後のボタン関連の処理
+const battleEndButtons = document.getElementById('battleEndButtons');
+const backToLobbyBtn = document.getElementById('backToLobbyBtn');
+const rematchBtn = document.getElementById('rematchBtn');
+const rematchPopup = document.getElementById('rematchPopup');
+const closeRematchBtn = document.getElementById('closeRematchBtn');
+const startRematchBtn = document.getElementById('startRematchBtn');
+const cancelRematchBtn = document.getElementById('cancelRematchBtn');
+const rematchLoader = document.getElementById('rematchLoader');
+const matchStatus = document.getElementById('matchStatus');
+
+// ロビーに戻るボタン
+backToLobbyBtn.addEventListener('click', () => {
+  window.location.href = '/lobby.html';
+});
+
+// 再度マッチングボタン
+rematchBtn.addEventListener('click', () => {
+  // リマッチ用ポップアップを表示
+  rematchPopup.style.display = 'flex';
+});
+
+// ポップアップを閉じるボタン
+closeRematchBtn.addEventListener('click', () => {
+  rematchPopup.style.display = 'none';
+});
+
+// マッチング開始ボタン
+startRematchBtn.addEventListener('click', () => {
+  startRematchBtn.style.display = 'none';
+  cancelRematchBtn.style.display = 'block';
+  rematchLoader.style.display = 'flex';
+  const texts = i18n[lang] || i18n.en;
+  matchStatus.textContent = texts.statusMatch || 'マッチング中...';
+  
+  // サーバーにマッチング要求を送信
+  socket.emit('joinBattleQueue');
+});
+
+// マッチングキャンセルボタン
+cancelRematchBtn.addEventListener('click', () => {
+  cancelRematchBtn.style.display = 'none';
+  startRematchBtn.style.display = 'block';
+  rematchLoader.style.display = 'none';
+  const texts = i18n[lang] || i18n.en;
+  matchStatus.textContent = texts.statusReady || '再度マッチングを行いますか？';
+  
+  // マッチングをキャンセル
+  socket.emit('cancelBattleQueue');
+});
+
+// マッチング成功時の処理を追加
+socket.on('matched', ({ roomId }) => {
+  rematchLoader.style.display = 'none';
+  // 新しい部屋へ移動
+  location.href = `/chat.html?room=${encodeURIComponent(roomId)}`;
+});
+</script>
+</body>
+</html>

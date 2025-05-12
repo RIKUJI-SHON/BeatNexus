@@ -1,0 +1,178 @@
+/* —— Color & font tokens ————————————— */
+:root {
+  --accent: #55dde0;
+  --accent-dark: #33b5b8;
+  --radius: 8px;
+  --shadow: 0 4px 12px rgba(0,0,0,0.3);
+  --bg-1: #111111;
+  --bg-2: #222222;
+  --text-1: #ffffff;
+  --text-2: #cccccc;
+  font-family:'Inter',sans-serif;
+}
+
+/* —— Global ————————————— */
+*{box-sizing:border-box;margin:0;padding:0}
+body{
+  min-height:100vh;
+  display:flex;
+  flex-direction:column;
+  align-items:center;
+  justify-content:center;
+  background:radial-gradient(circle at 30% 30%,#222 0%,var(--bg-1) 60%) no-repeat fixed;
+  color:var(--text-1);
+  padding:2rem;
+}
+h1,h2{font-family:'Russo One',sans-serif;letter-spacing:.5px}
+a{color:var(--accent)}
+button{
+  border:none;outline:none;cursor:pointer;
+  padding:.9rem 1.6rem;
+  border-radius:var(--radius);
+  font-weight:600;
+  background:var(--accent);
+  color:#000;
+  transition:all .18s ease;
+  box-shadow:var(--shadow);
+}
+button:hover{background:var(--accent-dark);transform:translateY(-1px)}
+button:disabled{opacity:.4;cursor:not-allowed;transform:none}
+
+/* —— Index / Lobby shared ————————————— */
+.container{
+  backdrop-filter:blur(12px);
+  background:rgba(255,255,255,.04);
+  border:1px solid rgba(255,255,255,.08);
+  border-radius:var(--radius);
+  padding:3rem 3.5rem;
+  box-shadow:var(--shadow);
+  max-width:460px;width:100%;
+  text-align:center;
+}
+.status{margin-top:1.2rem;font-size:1.1rem;color:var(--text-2)}
+
+/* —— Battle specific ————————————— */
+#battle-wrap{
+  width:100%;max-width:1280px;
+  display:flex;flex-direction:column;align-items:center;
+}
+#videos{
+  display:flex;gap:3%;width:100%;justify-content:center;flex-wrap:wrap;
+}
+video{
+  width:46%;min-width:280px;
+  border-radius:var(--radius);
+  border:3px solid var(--bg-2);
+  box-shadow:0 4px 14px rgba(0,0,0,.45);
+}
+#phase{
+  margin-top:1rem;font-size:1.4rem;
+}
+#timer{
+  margin:.6rem 0;font-size:2.4rem;
+  font-family:'Russo One',sans-serif;
+  color:var(--accent);
+}
+.redTurn{color:#e03535!important}
+
+/* —— レスポンシブスタイル ————————————— */
+/* モバイルファースト: デフォルトでモバイル用スタイル */
+
+/* モバイル用（スマートフォン 〜767px） */
+@media (max-width: 767px) {
+  body {
+    padding: 1rem;
+  }
+  .container {
+    padding: 2rem 1.5rem;
+    width: 95%;
+  }
+  
+  /* Battle画面のモバイルレイアウト */
+  #battle-wrap {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    padding: 1rem 0.5rem;
+  }
+  
+  #videos {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 1rem;
+    width: 100%;
+  }
+  
+  video {
+    width: 100%;
+    min-width: auto;
+    max-height: 38vh;
+    object-fit: cover;
+  }
+
+  /* タイマーとフェーズを映像の間に配置 */
+  #battle-wrap {
+    display: grid;
+    grid-template-rows: auto auto auto auto;
+    grid-template-areas: 
+      "video1"
+      "controls"
+      "video2";
+  }
+
+  #videos {
+    display: contents;
+  }
+  
+  .video-wrap:first-child {
+    grid-area: video1;
+    width: 100%;
+  }
+  
+  .video-wrap:last-child {
+    grid-area: video2;
+    width: 100%;
+  }
+  
+  .timer-container {
+    grid-area: controls;
+    padding: 1rem 0;
+    z-index: 10;
+  }
+  
+  #phase {
+    grid-area: controls;
+    margin-top: 0;
+    margin-bottom: 0.5rem;
+  }
+  
+  /* リアクションボタンの調整 */
+  .reaction-bar {
+    justify-content: center;
+    padding: 8px 10px;
+    gap: 8px;
+  }
+  
+  .reaction-bar button {
+    padding: 0.6em 1em;
+    font-size: 0.9rem;
+  }
+}
+
+/* タブレット用（768px〜1023px） */
+@media (min-width: 768px) and (max-width: 1023px) {
+  /* タブレット特有のスタイルがあれば追加 */
+  .container {
+    max-width: 720px;
+  }
+}
+
+/* デスクトップ用（1024px〜） */
+@media (min-width: 1024px) {
+  /* 既存のデスクトップスタイルはそのまま */
+  .container {
+    max-width: 960px;
+  }
+}
+  

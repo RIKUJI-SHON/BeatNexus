@@ -1,0 +1,1849 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>BeatNexus – Lobby</title>
+  <link rel="preconnect" href="https://fonts.gstatic.com">
+  <link href="https://fonts.googleapis.com/css2?family=Russo+One&family=Inter:wght@400;600&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="/styles.css">
+  <style>
+    body {
+      margin: 0;
+      background: var(--bg-1);
+      color: var(--text-1);
+      font-family: 'Inter', sans-serif;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      min-height: 100vh;
+      background: linear-gradient(135deg, #111111, #222222);
+    }
+    .container {
+      position: relative;
+      width: 90vw;
+      max-width: 450px;
+      background: rgba(255,255,255,0.08);
+      backdrop-filter: blur(12px);
+      border-radius: var(--radius);
+      padding: 1.2rem;
+      box-shadow: 0 8px 24px rgba(0,0,0,0.6);
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 0.6rem;
+      border: 1px solid rgba(255,255,255,0.1);
+    }
+    
+    /* ここから新しいユーザーアクションスタイル */
+    #userActions {
+      width: 100%;
+      display: flex;
+      flex-direction: column;
+      gap: 0.5rem;
+      margin-top: 0.3rem;
+    }
+    
+    /* セカンダリーボタン（Edit Profile, Settings） */
+    #editProfileBtn, #settingsBtn {
+      width: 100% !important;
+      padding: .8rem !important;
+      font-size: 1rem !important;
+      font-weight: 600 !important;
+      border: none !important;
+      border-radius: var(--radius) !important;
+      cursor: pointer !important;
+      background: #2a2a2a !important;
+      color: #fff !important;
+      box-shadow: 0 0 4px rgba(85, 221, 224, 0.2), 0 4px 8px rgba(0,0,0,0.2) !important;
+      border: 1px solid rgba(85, 221, 224, 0.15) !important;
+      transition: transform .2s, background-color .2s, box-shadow .2s !important;
+    }
+    
+    #editProfileBtn:hover, #settingsBtn:hover {
+      transform: translateY(-2px) !important;
+      background: #323232 !important;
+      box-shadow: 0 0 8px rgba(85, 221, 224, 0.3), 0 6px 12px rgba(0,0,0,0.3) !important;
+      border-color: rgba(85, 221, 224, 0.25) !important;
+    }
+    
+    /* Logout ボタン（危険なアクション） */
+    #logoutBtn {
+      width: 100% !important;
+      padding: .8rem !important;
+      font-size: 1rem !important;
+      font-weight: 600 !important;
+      border: none !important;
+      border-radius: var(--radius) !important;
+      cursor: pointer !important;
+      background: rgba(220, 53, 53, 0.15) !important;
+      color: #fff !important;
+      border: 1px solid rgba(220, 53, 53, 0.3) !important;
+      display: flex !important;
+      align-items: center !important;
+      justify-content: center !important;
+      gap: 0.5rem !important;
+      transition: transform .2s, background-color .2s, box-shadow .2s !important;
+    }
+    
+    #logoutBtn:hover {
+      transform: translateY(-2px) !important;
+      background: rgba(220, 53, 53, 0.25) !important;
+      box-shadow: 0 0 8px rgba(220, 53, 53, 0.3), 0 6px 12px rgba(0,0,0,0.3) !important;
+    }
+    /* ここまで新しいユーザーアクションスタイル */
+    
+    h1 {
+      font-family: 'Russo One', sans-serif;
+      font-size: 1.6rem;
+      margin: 0;
+      color: var(--accent);
+      text-shadow: 0 2px 4px rgba(0,0,0,0.5);
+    }
+    #previewWrap {
+      width: 100%;
+      display: flex;
+      flex-direction: column;
+      position: relative;
+      align-items: center;
+      margin-bottom: 0.2rem;
+    }
+    #previewVideo {
+      width: 100%;
+      max-width: 320px;
+      aspect-ratio: 16/9;
+      border-radius: var(--radius);
+      background: #000;
+      object-fit: cover;
+      box-shadow: 0 6px 18px rgba(0,0,0,0.5);
+      border: 2px solid rgba(255,255,255,0.1);
+    }
+    
+    /* デバイスステータスインジケータ */
+    #deviceStatus {
+      display: flex;
+      gap: 0.6rem;
+      margin-top: 0.5rem;
+      justify-content: center;
+    }
+    .device-indicator {
+      display: flex;
+      align-items: center;
+      gap: 0.3rem;
+      background: rgba(0,0,0,0.3);
+      padding: 0.4rem 0.6rem;
+      border-radius: 20px;
+      font-size: 0.8rem;
+      font-weight: 500;
+      position: relative;
+      cursor: help;
+    }
+    .indicator-dot {
+      width: 0.8rem;
+      height: 0.8rem;
+      border-radius: 50%;
+      background: #DC3535;
+      transition: background-color 0.3s ease;
+    }
+    .indicator-dot.active {
+      background: #4CD964;
+    }
+    .device-tooltip {
+      position: absolute;
+      bottom: 100%;
+      left: 50%;
+      transform: translateX(-50%) translateY(0.5rem);
+      background: rgba(30, 30, 30, 0.9);
+      color: #fff;
+      padding: 0.5rem 0.8rem;
+      border-radius: var(--radius);
+      font-size: 0.75rem;
+      white-space: nowrap;
+      opacity: 0;
+      visibility: hidden;
+      transition: all 0.2s ease;
+      z-index: 100;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.3);
+      pointer-events: none;
+      border: 1px solid rgba(255,255,255,0.1);
+    }
+    .device-tooltip::after {
+      content: '';
+      position: absolute;
+      top: 100%;
+      left: 50%;
+      transform: translateX(-50%);
+      border: 6px solid transparent;
+      border-top-color: rgba(30, 30, 30, 0.9);
+    }
+    .device-indicator:hover .device-tooltip {
+      opacity: 1;
+      visibility: visible;
+      transform: translateX(-50%) translateY(0);
+    }
+    
+    /* カメラトグルスイッチ - デフォルトは右上に配置 */
+    #cameraToggleWrap {
+      position: absolute;
+      top: 10px;
+      right: 10px;
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+      background: rgba(0,0,0,0.6);
+      border-radius: 30px;
+      padding: 5px 10px;
+      backdrop-filter: blur(4px);
+      border: 1px solid rgba(255,255,255,0.1);
+    }
+    
+    /* タブレット（iPad）表示用のレイアウト調整 */
+    @media (min-width: 768px) and (max-width: 1024px) {
+      #previewWrap {
+        align-items: center;
+      }
+      #previewVideo {
+        width: 100%;
+        max-width: 600px;
+        aspect-ratio: 16/9;
+        height: auto;
+      }
+      /* カメラトグルを動画の下に配置 */
+      #cameraToggleWrap {
+        position: static;
+        margin-top: 12px;
+        justify-content: center;
+        width: auto;
+      }
+      /* デバイスステータスの位置も調整 */
+      #deviceStatus {
+        margin-top: 12px;
+      }
+    }
+    
+    #toggleLabel {
+      font-weight: 600;
+      font-size: 0.8rem;
+      color: white;
+      text-shadow: 0 1px 2px rgba(0,0,0,0.8);
+    }
+    .switch { --circle-dim:1.2em; position: relative; display: inline-block; width: 3em; height: 1.5em; }
+    .switch input { opacity: 0; width: 0; height: 0; }
+    .slider {
+      position: absolute;
+      inset: 0;
+      background: rgba(220, 53, 53, 0.3);
+      border-radius: 30px;
+      transition: .3s;
+      backdrop-filter: blur(4px);
+    }
+    .slider-card {
+      position: absolute;
+      bottom: .15em;
+      left: .15em;
+      width: var(--circle-dim);
+      height: var(--circle-dim);
+      background: #DC3535;
+      border-radius: 50%;
+      transition: .3s;
+      box-shadow: 0 2px 4px rgba(0,0,0,0.3);
+    }
+    .switch input:checked ~ .slider-card { transform: translateX(1.5em); background: #4CD964; }
+    .switch input:checked ~ .slider { background: rgba(76, 217, 100, 0.3); }
+    #controls {
+      width: 100%;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: .5rem;
+    }
+    #controls button {
+      width: 100%;
+      padding: .7rem;
+      font-size: 1rem;
+      font-weight: 600;
+      border: none;
+      border-radius: var(--radius);
+      background: var(--accent);
+      color: #000;
+      cursor: pointer;
+      box-shadow: var(--shadow);
+      transition: transform .2s, background-color .2s;
+    }
+    #controls button:disabled {
+      opacity: .6;
+      cursor: not-allowed;
+      background-color: #505050;
+      color: #aaaaaa;
+      box-shadow: none;
+    }
+    #controls button:not(:disabled):hover {
+      transform: translateY(-2px);
+      background-color: var(--accent-dark);
+    }
+    #cancelBattle { 
+      background: rgba(220, 53, 53, 0.8) !important;
+      color: white !important;
+    }
+    
+    #cancelBattle:hover {
+      background: rgba(220, 53, 53, 1) !important;
+      transform: translateY(-2px);
+    }
+
+    .earth-loader {
+      --watercolor: #4aa4e0;
+      --landcolor: #6dbf4b;
+      display: none;
+      width: 2.5rem;
+      height: 2.5rem;
+      background-color: var(--watercolor);
+      position: relative;
+      overflow: hidden;
+      border-radius: 50%;
+      border: .15em solid white;
+      box-shadow: inset 0 .4em rgba(255,255,255,0.25), inset 0 -.4em rgba(0,0,0,0.25);
+      align-items: center;
+      justify-content: center;
+      margin: 0.2rem 0;
+    }
+    .earth-loader svg { position: absolute; width: 2rem; height: auto; }
+    .earth-loader svg:nth-child(1) { bottom: -0.8rem; animation: round1 5s infinite linear .6s; }
+    .earth-loader svg:nth-child(2) { top: -1.2rem; animation: round1 5s infinite linear; }
+    .earth-loader svg:nth-child(3) { top: -1rem; animation: round2 5s infinite linear; }
+    .earth-loader svg:nth-child(4) { bottom: -0.9rem; animation: round2 5s infinite linear .6s; }
+    @keyframes round1 { 0%{left:-.8rem;}30%{left:-2rem;opacity:1;}31%{opacity:0;}35%{left:3rem;}45%{opacity:1;}100%{left:-.8rem;} }
+    @keyframes round2 { 0%{left:1rem;}75%{left:-3rem;opacity:1;}76%{opacity:0;}80%{opacity:1;}100%{left:1rem;} }
+
+    .status {
+      font-size: .8rem;
+      color: var(--text-2);
+      text-align: center;
+      height: 1rem;
+      margin: 0.2rem 0;
+    }
+    
+    /* 以前の設定（下線付き）を削除 */
+    #editProfileBtn {
+      background: transparent;
+      border: none;
+      color: var(--accent);
+      cursor: pointer;
+      transition: color 0.2s, transform 0.2s;
+      text-decoration: none;
+    }
+    
+    #editProfileBtn:hover {
+      color: var(--accent);
+      transform: translateY(-1px);
+    }
+    
+    #logoutBtn, #editProfileBtn {
+      background: transparent;
+      border: none;
+      color: var(--text-2);
+      text-decoration: none;
+      cursor: pointer;
+      padding: 0.5rem 1rem;
+      transition: color 0.2s, transform 0.2s;
+    }
+    #logoutBtn:hover, #editProfileBtn:hover {
+      color: var(--text-1);
+      transform: translateY(-1px);
+    }
+    #editProfileBtn {
+      color: var(--accent);
+      margin-top: 0.5rem;
+      text-decoration: none;
+      border: 1px solid var(--accent);
+      border-radius: var(--radius);
+    }
+    #editProfileBtn:hover {
+      background-color: rgba(85, 221, 224, 0.1);
+    }
+
+    /* Modal */
+    #editModal {
+      display: none;
+      position: fixed;
+      inset: 0;
+      background: rgba(0,0,0,0.8);
+      align-items: center;
+      justify-content: center;
+      z-index: 1000;
+    }
+    #editModal .card {
+      background: rgba(255,255,255,0.05);
+      backdrop-filter: blur(12px);
+      padding: 2rem;
+      border-radius: var(--radius);
+      width: 90vw;
+      max-width: 480px;
+      color: var(--text-1);
+      display: flex;
+      flex-direction: column;
+      gap: 1rem;
+      border: 1px solid rgba(255,255,255,0.1);
+      box-shadow: 0 8px 24px rgba(0,0,0,0.6);
+    }
+    #editModal h2 {
+      margin-top: 0;
+      font-family: 'Russo One', sans-serif;
+      color: var(--accent);
+      text-shadow: 0 2px 4px rgba(0,0,0,0.5);
+      text-align: center;
+    }
+    #editModal label {
+      font-weight: 600;
+      margin-bottom: .3rem;
+      font-size: .95rem;
+    }
+    #editModal input,
+    #editModal select {
+      width: 100%;
+      padding: .75rem 1rem;
+      margin-bottom: 1rem;
+      border: 1px solid rgba(255,255,255,0.1);
+      border-radius: var(--radius);
+      background: rgba(0,0,0,0.2);
+      color: var(--text-1);
+      font-size: 1rem;
+      box-shadow: inset 0 2px 4px rgba(0,0,0,0.1);
+      transition: all 0.2s ease;
+    }
+    #editModal input:focus,
+    #editModal select:focus {
+      outline: none;
+      border-color: var(--accent);
+      box-shadow: 0 0 0 2px rgba(85, 221, 224, 0.3);
+    }
+    #saveProfileBtn,
+    #cancelEditBtn {
+      width: 100%;
+      padding: .8rem;
+      font-size: 1rem;
+      font-weight: 600;
+      border: none;
+      border-radius: var(--radius);
+      box-shadow: var(--shadow);
+      transition: transform .2s, background-color .2s;
+      cursor: pointer;
+      margin-top: 0.5rem;
+    }
+    #saveProfileBtn {
+      background: var(--accent);
+      color: #000;
+    }
+    #saveProfileBtn:hover:not(:disabled) {
+      transform: translateY(-2px);
+      background: var(--accent-dark);
+    }
+    #saveProfileBtn:disabled {
+      opacity: .5;
+      cursor: not-allowed;
+    }
+    #cancelEditBtn {
+      background: var(--bg-2);
+      color: var(--text-1);
+      border: 1px solid rgba(255,255,255,0.1);
+    }
+    #cancelEditBtn:hover {
+      transform: translateY(-2px);
+      background: rgba(255,255,255,0.1);
+    }
+    
+    .level-selection {
+      display: flex;
+      align-items: center;
+    }
+
+    /* Tooltip for level guidance */
+    .info-icon {
+      position: relative;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      margin-left: 0.5rem;
+      cursor: pointer;
+      width: 1.6rem;
+      height: 1.6rem;
+      background: var(--accent);
+      color: #000;
+      border-radius: 50%;
+      font-size: 1rem;
+    }
+    .info-icon .tooltip {
+      position: absolute;
+      left: calc(100% + 0.5rem);
+      top: 50%;
+      transform: translateY(-50%) translateX(-0.5rem);
+      background: var(--bg-2);
+      color: var(--text-1);
+      padding: 0.8rem;
+      border-radius: var(--radius);
+      white-space: pre-wrap;
+      font-size: 0.85rem;
+      line-height: 1.4;
+      opacity: 0;
+      visibility: hidden;
+      transition: opacity 0.2s ease, transform 0.2s ease;
+      z-index: 100;
+      pointer-events: none;
+      min-width: 240px;
+      box-shadow: var(--shadow);
+      border: 1px solid rgba(255,255,255,0.1);
+    }
+    .info-icon .tooltip::before {
+      content: '';
+      position: absolute;
+      left: -0.5rem;
+      top: 50%;
+      transform: translateY(-50%);
+      border: 0.5rem solid transparent;
+      border-right-color: var(--bg-2);
+    }
+    .info-icon:hover .tooltip {
+      opacity: 1;
+      visibility: visible;
+      transform: translateY(-50%) translateX(0);
+    }
+
+    /* Mobile styles */
+    @media (max-width: 767px) {
+      .container {
+        padding: 1rem;
+        width: 95%;
+        gap: 0.5rem;
+      }
+      
+      h1 {
+        font-size: 1.4rem;
+        margin-bottom: 0.3rem;
+      }
+      
+      #previewVideo {
+        max-width: 100%;
+      }
+      
+      #controls button {
+        padding: 0.6rem;
+      }
+      
+      #controls {
+        gap: 0.4rem;
+      }
+      
+      .status {
+        margin: 0;
+      }
+      
+      #userActions {
+        gap: 0.4rem;
+      }
+      
+      #userActions button {
+        padding: 0.6rem;
+      }
+      
+      .info-icon .tooltip {
+        left: 50%;
+        top: 100%;
+        transform: translateX(-50%) translateY(-0.5rem);
+        width: 90vw;
+        max-width: 300px;
+      }
+      
+      .info-icon .tooltip::before {
+        left: 50%;
+        top: -0.5rem;
+        transform: translateX(-50%);
+        border-color: transparent;
+        border-bottom-color: var(--bg-2);
+      }
+      
+      .info-icon:hover .tooltip {
+        transform: translateX(-50%) translateY(0);
+      }
+      
+      #editModal .card {
+        padding: 1.5rem;
+      }
+    }
+
+    /* PC用のレイアウト */
+    @media (min-width: 992px) {
+      .container {
+        max-width: 80%;
+        width: 900px;
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        grid-template-areas:
+          "header header"
+          "video controls"
+          "buttons buttons";
+        column-gap: 1.5rem;
+        row-gap: 0.8rem;
+        padding: 1.5rem;
+      }
+      
+      h1 {
+        grid-area: header;
+        text-align: center;
+        margin-bottom: 1rem;
+      }
+      
+      #previewWrap {
+        grid-area: video;
+        width: 100%;
+      }
+      
+      #controls {
+        grid-area: controls;
+        align-self: center;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        gap: .5rem;
+      }
+      
+      #cameraToggleWrap {
+        align-self: flex-start;
+        margin-bottom: 1rem;
+      }
+      
+      /* PCレイアウトでのユーザーアクション */
+      #userActions {
+        grid-area: buttons;
+        flex-direction: row;
+        justify-content: center;
+        gap: 0.8rem;
+        margin-top: 0.8rem;
+      }
+      
+      #userActions button {
+        width: auto !important;
+        min-width: 150px !important;
+      }
+      
+      #previewVideo {
+        width: 100%;
+        max-width: none;
+      }
+    }
+
+    #userActions {
+      width: 100%;
+      display: flex;
+      flex-direction: column;
+      gap: 0.75rem;
+      margin-top: 0.5rem;
+    }
+    
+    #userActions button {
+      width: 100%;
+      padding: .8rem;
+      font-size: 1rem;
+      font-weight: 600;
+      border: none;
+      border-radius: var(--radius);
+      background: var(--bg-2);
+      color: var(--text-1);
+      cursor: pointer;
+      box-shadow: var(--shadow);
+      transition: transform .2s, background-color .2s;
+      border: 1px solid rgba(255,255,255,0.1);
+    }
+    
+    #userActions button:hover {
+      transform: translateY(-2px);
+      background: rgba(255,255,255,0.1);
+    }
+
+    /* 設定モーダル */
+    #settingsModal {
+      display: none;
+      position: fixed;
+      inset: 0;
+      background: rgba(0,0,0,0.8);
+      align-items: center;
+      justify-content: center;
+      z-index: 1000;
+    }
+    #settingsModal .card {
+      background: rgba(255,255,255,0.05);
+      backdrop-filter: blur(12px);
+      padding: 2rem;
+      border-radius: var(--radius);
+      width: 90vw;
+      max-width: 480px;
+      color: var(--text-1);
+      display: flex;
+      flex-direction: column;
+      gap: 1rem;
+      border: 1px solid rgba(255,255,255,0.1);
+      box-shadow: 0 8px 24px rgba(0,0,0,0.6);
+      max-height: 80vh;
+      overflow-y: auto;
+    }
+    #settingsModal h2 {
+      margin-top: 0;
+      font-family: 'Russo One', sans-serif;
+      color: var(--accent);
+      text-shadow: 0 2px 4px rgba(0,0,0,0.5);
+      text-align: center;
+    }
+    #settingsModal label {
+      font-weight: 600;
+      margin-bottom: .3rem;
+      font-size: .95rem;
+    }
+    #settingsModal select {
+      width: 100%;
+      padding: .75rem 1rem;
+      margin-bottom: 1rem;
+      border: 1px solid rgba(255,255,255,0.1);
+      border-radius: var(--radius);
+      background: rgba(0,0,0,0.2);
+      color: var(--text-1);
+      font-size: 1rem;
+      box-shadow: inset 0 2px 4px rgba(0,0,0,0.1);
+      transition: all 0.2s ease;
+    }
+    #settingsModal select:focus {
+      outline: none;
+      border-color: var(--accent);
+      box-shadow: 0 0 0 2px rgba(85, 221, 224, 0.3);
+    }
+    
+    /* マイクテスト関連 */
+    #micTestContainer {
+      margin-bottom: 1.5rem;
+    }
+    .mic-test-display {
+      display: flex;
+      align-items: center;
+      gap: 1rem;
+      margin-top: 0.5rem;
+    }
+    .volume-meter {
+      flex: 1;
+      height: 24px;
+      background: rgba(0,0,0,0.3);
+      border-radius: 12px;
+      overflow: hidden;
+      box-shadow: inset 0 2px 4px rgba(0,0,0,0.2);
+      border: 1px solid rgba(255,255,255,0.05);
+    }
+    .meter-bar {
+      height: 100%;
+      width: 0%;
+      background: linear-gradient(to right, #4CD964, #55dde0);
+      border-radius: 12px;
+      transition: width 0.05s ease;
+    }
+    #micTestBtn {
+      padding: 0.5rem 1rem;
+      background: var(--accent);
+      color: #000;
+      border: none;
+      border-radius: var(--radius);
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.2s ease;
+    }
+    #micTestBtn:hover {
+      background: var(--accent-dark);
+      transform: translateY(-2px);
+    }
+    #micTestBtn.testing {
+      background: #DC3535;
+    }
+    .mic-status {
+      font-size: 0.9rem;
+      color: var(--text-2);
+      margin-top: 0.5rem;
+      text-align: center;
+      min-height: 1.2rem;
+    }
+    
+    /* カメラプレビュー関連（新規追加） */
+    #cameraPreviewContainer {
+      width: 100%;
+      margin: 0.5rem 0 1.5rem;
+      border-radius: var(--radius);
+      overflow: hidden;
+      position: relative;
+    }
+    
+    #settingsCameraPreview {
+      width: 100%;
+      aspect-ratio: 16/9;
+      background: #000;
+      object-fit: cover;
+      border-radius: var(--radius);
+      border: 1px solid rgba(255,255,255,0.1);
+    }
+    
+    /* スピーカーテスト関連（新規追加） */
+    #speakerTestContainer {
+      margin: 0.5rem 0 1.5rem;
+    }
+    
+    #speakerTestBtn {
+      width: 100%;
+      padding: 0.5rem 1rem;
+      background: var(--accent);
+      color: #000;
+      border: none;
+      border-radius: var(--radius);
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.2s ease;
+    }
+    
+    #speakerTestBtn:hover {
+      background: var(--accent-dark);
+      transform: translateY(-2px);
+    }
+    
+    #speakerTestBtn:active {
+      transform: scale(0.95);
+    }
+    
+    /* 言語選択関連（新規追加） */
+    #settingsLangSelect {
+      margin-bottom: 1.5rem;
+    }
+    
+    #saveSettingsBtn,
+    #cancelSettingsBtn {
+      width: 100%;
+      padding: .8rem;
+      font-size: 1rem;
+      font-weight: 600;
+      border: none;
+      border-radius: var(--radius);
+      box-shadow: var(--shadow);
+      transition: transform .2s, background-color .2s;
+      cursor: pointer;
+      margin-top: 0.5rem;
+    }
+    #saveSettingsBtn {
+      background: var(--accent);
+      color: #000;
+    }
+    #saveSettingsBtn:hover {
+      transform: translateY(-2px);
+      background: var(--accent-dark);
+    }
+    #cancelSettingsBtn {
+      background: var(--bg-2);
+      color: var(--text-1);
+      border: 1px solid rgba(255,255,255,0.1);
+    }
+    #cancelSettingsBtn:hover {
+      transform: translateY(-2px);
+      background: rgba(255,255,255,0.1);
+    }
+
+    /* スマホ向けに少し調整 */
+    @media (max-width: 767px) {
+      #settingsModal .card {
+        max-height: 85vh;
+        padding-right: 1.5rem;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h1>🎤 BeatNexus</h1>
+
+    <div id="previewWrap">
+      <video id="previewVideo" autoplay muted playsinline></video>
+      <div id="cameraToggleWrap">
+        <label class="switch">
+          <input type="checkbox" id="cameraToggle">
+          <span class="slider"></span>
+          <span class="slider-card"></span>
+        </label>
+        <span id="toggleLabel">Camera On</span>
+      </div>
+      <div id="deviceStatus">
+        <div class="device-indicator" id="micIndicator">
+          <span class="indicator-dot" id="micDot"></span>
+          <span>🎤</span>
+          <div class="device-tooltip" id="micTooltip">No microphone</div>
+        </div>
+        <div class="device-indicator" id="speakerIndicator">
+          <span class="indicator-dot" id="speakerDot"></span>
+          <span>🔊</span>
+          <div class="device-tooltip" id="speakerTooltip">No speaker</div>
+        </div>
+      </div>
+    </div>
+
+    <div id="controls">
+      <div class="earth-loader" id="loader">
+        <svg viewBox="0 0 100 100"><circle cx="50" cy="50" r="40" fill="var(--landcolor)"/></svg>
+        <svg viewBox="0 0 100 100"><circle cx="30" cy="30" r="15" fill="var(--watercolor)"/></svg>
+        <svg viewBox="0 0 100 100"><circle cx="70" cy="70" r="20" fill="var(--landcolor)"/></svg>
+        <svg viewBox="0 0 100 100"><circle cx="50" cy="20" r="10" fill="var(--watercolor)"/></svg>
+      </div>
+      <p id="status" class="status">Connecting to server…</p>
+      <button id="startBattle" disabled>🚀 Start Battle</button>
+      <button id="cancelBattle" style="display:none">❌ Cancel</button>
+    </div>
+
+    <div id="userActions">
+      <button id="editProfileBtn">✏️ Edit Profile</button>
+      <button id="settingsBtn">⚙ Settings</button>
+      <button id="logoutBtn">🚪 Logout</button>
+    </div>
+  </div>
+
+  <!-- 設定モーダル -->
+  <div id="settingsModal">
+    <div class="card">
+      <h2 id="settingsTitle">Settings</h2>
+
+      <!-- マイク設定 -->
+      <label id="micSelectLbl">Microphone</label>
+      <select id="micSelect">
+        <option value="">Loading microphones...</option>
+      </select>
+
+      <div id="micTestContainer">
+        <label id="micTestLbl">Microphone Test</label>
+        <div class="mic-test-display">
+          <div class="volume-meter">
+            <div class="meter-bar"></div>
+          </div>
+          <button id="micTestBtn">Test</button>
+        </div>
+        <div class="mic-status" id="micStatus"></div>
+      </div>
+
+      <!-- カメラ設定（新規追加） -->
+      <label id="cameraSelectLbl">Camera</label>
+      <select id="cameraSelect">
+        <option value="">Loading cameras...</option>
+      </select>
+
+      <!-- 出力デバイス設定（新規追加） -->
+      <label id="speakerSelectLbl">Speaker</label>
+      <select id="speakerSelect">
+        <option value="">Loading speakers...</option>
+      </select>
+
+      <div id="speakerTestContainer">
+        <button id="speakerTestBtn">Test Speaker</button>
+      </div>
+
+      <!-- 言語設定（新規追加） -->
+      <label id="langSelectLbl">Language</label>
+      <select id="settingsLangSelect">
+        <option value="en">English</option>
+        <option value="ja">日本語</option>
+        <option value="es">Español</option>
+        <option value="fr">Français</option>
+        <option value="zh">中文</option>
+        <option value="ko">한국어</option>
+      </select>
+
+      <button id="saveSettingsBtn">Save</button>
+      <button id="cancelSettingsBtn">Cancel</button>
+    </div>
+  </div>
+
+  <div id="editModal">
+    <div class="card">
+      <h2>Profile</h2>
+
+      <label id="nameLbl">Name</label>
+      <input type="text" id="editName">
+
+      <label id="countryLbl">Country</label>
+      <select id="editCountry">
+        <option value="">--</option>
+        <option value="JP">🇯🇵 Japan</option>
+        <option value="US">🇺🇸 United States</option>
+        <option value="KR">🇰🇷 Korea</option>
+        <option value="IN">🇮🇳 India</option>
+        <option value="FR">🇫🇷 France</option>
+        <option value="DE">🇩🇪 Germany</option>
+        <option value="BR">🇧🇷 Brazil</option>
+        <option value="PH">🇵🇭 Philippines</option>
+        <option value="TH">🇹🇭 Thailand</option>
+        <option value="GB">🇬🇧 United Kingdom</option>
+      </select>
+
+      <label id="levelLbl">Beatbox Level</label>
+      <div class="level-selection">
+        <select id="editLevel">
+          <option value="">--</option>
+          <option value="beginner">💧 Beginner</option>
+          <option value="middle">🌱 Middle-class</option>
+          <option value="advanced">🔥 Advanced</option>
+          <option value="top">🏆 Top Player</option>
+        </select>
+        <span class="info-icon">ℹ️
+          <span class="tooltip"></span>
+        </span>
+      </div>
+
+      <button id="saveProfileBtn" disabled>Save</button>
+      <button id="cancelEditBtn">Cancel</button>
+    </div>
+  </div>
+
+  <script src="/socket.io/socket.io.js"></script>
+  <script>
+    document.addEventListener('DOMContentLoaded', () => {
+      const texts = {
+        en: {
+          toggleOn: 'Camera On', toggleOff: 'Camera Off',
+          start: '🚀 Start Battle', cancel: '❌ Cancel',
+          statusConn: 'Connecting...', statusReady: '',
+          statusMatch: 'Matching…', statusLeave: 'Opponent left.',
+          logout: 'Logout', edit: 'Edit Profile', settings: 'Settings',
+          name: 'Name', country: 'Country', level: 'Beatbox Level',
+          settingsTitle: 'Settings',
+          microphone: 'Microphone',
+          micTest: 'Microphone Test',
+          testMic: 'Test', stopTest: 'Stop',
+          micDetected: 'Microphone detected',
+          micNotDetected: 'No microphone detected',
+          micGood: 'Microphone is working well',
+          micLow: 'Microphone volume too low',
+          saveSettings: 'Save', cancelSettings: 'Cancel',
+          camera: 'Camera',
+          cameraLoading: 'Loading cameras...',
+          cameraNotDetected: 'No camera detected',
+          speaker: 'Speaker',
+          speakerLoading: 'Loading speakers...',
+          speakerNotDetected: 'No speaker detected',
+          testSpeaker: 'Test Speaker',
+          language: 'Language',
+          levelGuide:
+`🏅 Beginner 💧
+ └ only basic three sounds / <1 yr / no battle experience / mostly spectator
+
+🏅 Middle-class 🌱
+ └ basics stable + some special sounds / 1–3 yrs / local battles
+
+🏅 Advanced 🔥
+ └ multiple advanced techniques / 3–5 yrs / mid-level contest placements
+
+🏅 Top Player 🏆
+ └ pro-level / 5+ yrs / national & international titles
+
+※ The above are only guidelines.`,
+        },
+        ja: {
+          toggleOn: 'カメラON', toggleOff: 'カメラOFF',
+          start: '🚀 対戦スタート', cancel: '❌ キャンセル',
+          statusConn: '接続中...', statusReady: '',
+          statusMatch: 'マッチング中…', statusLeave: '相手が切断しました。',
+          logout: 'ログアウト', edit: 'プロフィール編集', settings: '設定',
+          name: '名前', country: '国籍', level: 'レベル',
+          settingsTitle: '設定',
+          microphone: 'マイク',
+          micTest: 'マイクテスト',
+          testMic: 'テスト', stopTest: '停止',
+          micDetected: 'マイクを検出しました',
+          micNotDetected: 'マイクが見つかりません',
+          micGood: 'マイクは正常に動作しています',
+          micLow: '音量が小さすぎます',
+          saveSettings: '保存', cancelSettings: 'キャンセル',
+          camera: 'カメラ',
+          cameraLoading: 'カメラを読み込み中...',
+          cameraNotDetected: 'カメラが見つかりません',
+          speaker: 'スピーカー',
+          speakerLoading: 'スピーカーを読み込み中...',
+          speakerNotDetected: 'スピーカーが見つかりません',
+          testSpeaker: 'スピーカーテスト',
+          language: '言語',
+          levelGuide:
+`🏅 ビギナー 💧  
+ └ 基礎3音がやっと / 1年未満 / バトル未経験 / 観戦メイン
+
+🏅 ミドルクラス 🌱  
+ └ 基礎安定＋特殊音少し / 1–3年 / ローカル大会経験
+
+🏅 アドバンス 🔥  
+ └ 上級テクニック複数 / 3–5年 / 中規模大会入賞
+
+🏅 トッププレイヤー 🏆  
+ └ プロ級 / 5年以上 / 国内外大会上位常連
+
+※ 上記の内容はあくまで目安です。`
+        },
+        es: {
+          toggleOn: 'Cámara Activada', toggleOff: 'Cámara Desactivada',
+          start: '🚀 Comenzar Batalla', cancel: '❌ Cancelar',
+          statusConn: 'Conectando...', statusReady: '',
+          statusMatch: 'Buscando rival…', statusLeave: 'El oponente se ha ido.',
+          logout: 'Cerrar sesión', edit: 'Editar Perfil', settings: 'Configuración',
+          name: 'Nombre', country: 'País', level: 'Nivel de Beatbox',
+          settingsTitle: 'Configuración',
+          microphone: 'Micrófono',
+          micTest: 'Prueba de Micrófono',
+          testMic: 'Probar', stopTest: 'Parar',
+          micDetected: 'Micrófono detectado',
+          micNotDetected: 'No se detectó ningún micrófono',
+          micGood: 'El micrófono funciona bien',
+          micLow: 'Volumen del micrófono demasiado bajo',
+          saveSettings: 'Guardar', cancelSettings: 'Cancelar',
+          camera: 'Cámara',
+          cameraLoading: 'Cargando cámaras...',
+          cameraNotDetected: 'No se detectó ninguna cámara',
+          speaker: 'Altavoz',
+          speakerLoading: 'Cargando altavoces...',
+          speakerNotDetected: 'No se detectó ningún altavoz',
+          testSpeaker: 'Probar Altavoz',
+          language: 'Idioma',
+          levelGuide:
+`🏅 Principiante 💧
+ └ solo tres sonidos básicos / <1 año / sin experiencia en batallas / principalmente espectador
+
+🏅 Clase media 🌱
+ └ básicos estables + algunos sonidos especiales / 1-3 años / batallas locales
+
+🏅 Avanzado 🔥
+ └ múltiples técnicas avanzadas / 3-5 años / clasificaciones en concursos de nivel medio
+
+🏅 Jugador Top 🏆
+ └ nivel profesional / 5+ años / títulos nacionales e internacionales
+
+※ Lo anterior son solo pautas.`,
+        },
+        fr: {
+          toggleOn: 'Caméra Activée', toggleOff: 'Caméra Désactivée',
+          start: '🚀 Commencer le Combat', cancel: '❌ Annuler',
+          statusConn: 'Connexion...', statusReady: '',
+          statusMatch: 'Recherche d\'adversaire…', statusLeave: 'L\'adversaire est parti.',
+          logout: 'Déconnexion', edit: 'Modifier le Profil', settings: 'Paramètres',
+          name: 'Nom', country: 'Pays', level: 'Niveau de Beatbox',
+          settingsTitle: 'Paramètres',
+          microphone: 'Microphone',
+          micTest: 'Test de Microphone',
+          testMic: 'Tester', stopTest: 'Arrêter',
+          micDetected: 'Microphone détecté',
+          micNotDetected: 'Aucun microphone détecté',
+          micGood: 'Le microphone fonctionne bien',
+          micLow: 'Volume du microphone trop bas',
+          saveSettings: 'Enregistrer', cancelSettings: 'Annuler',
+          camera: 'Caméra',
+          cameraLoading: 'Chargement des caméras...',
+          cameraNotDetected: 'Aucune caméra détectée',
+          speaker: 'Haut-parleur',
+          speakerLoading: 'Chargement des haut-parleurs...',
+          speakerNotDetected: 'Aucun haut-parleur détecté',
+          testSpeaker: 'Tester Haut-parleur',
+          language: 'Langue',
+          levelGuide:
+`🏅 Débutant 💧
+ └ seulement trois sons basiques / <1 an / pas d'expérience de bataille / principalement spectateur
+
+🏅 Classe moyenne 🌱
+ └ bases stables + quelques sons spéciaux / 1-3 ans / batailles locales
+
+🏅 Avancé 🔥
+ └ plusieurs techniques avancées / 3-5 ans / placements dans des concours de niveau intermédiaire
+
+🏅 Joueur de haut niveau 🏆
+ └ niveau pro / 5+ ans / titres nationaux et internationaux
+
+※ Ce qui précède n'est qu'un guide.`,
+        },
+        zh: {
+          toggleOn: '开启摄像头', toggleOff: '关闭摄像头',
+          start: '🚀 开始对战', cancel: '❌ 取消',
+          statusConn: '连接中...', statusReady: '',
+          statusMatch: '匹配中…', statusLeave: '对手已离开。',
+          logout: '退出登录', edit: '编辑个人资料', settings: '设置',
+          name: '姓名', country: '国家', level: 'Beatbox水平',
+          settingsTitle: '设置',
+          microphone: '麦克风',
+          micTest: '麦克风测试',
+          testMic: '测试', stopTest: '停止',
+          micDetected: '已检测到麦克风',
+          micNotDetected: '未检测到麦克风',
+          micGood: '麦克风工作正常',
+          micLow: '麦克风音量过低',
+          saveSettings: '保存', cancelSettings: '取消',
+          camera: '摄像头',
+          cameraLoading: '正在加载摄像头...',
+          cameraNotDetected: '未检测到摄像头',
+          speaker: '扬声器',
+          speakerLoading: '正在加载扬声器...',
+          speakerNotDetected: '未检测到扬声器',
+          testSpeaker: '测试扬声器',
+          language: '语言',
+          levelGuide:
+`🏅 初学者 💧
+ └ 仅掌握三种基本音 / 不到1年 / 无比赛经验 / 主要是观众
+
+🏅 中级选手 🌱
+ └ 基本功稳定+一些特殊音 / 1-3年 / 参加过地方比赛
+
+🏅 高级选手 🔥
+ └ 掌握多种高级技巧 / 3-5年 / 中型比赛获奖经历
+
+🏅 顶尖选手 🏆
+ └ 专业级别 / 5年以上 / 国内外比赛冠军
+
+※ 以上仅为参考标准。`,
+        },
+        ko: {
+          toggleOn: '카메라 켜기', toggleOff: '카메라 끄기',
+          start: '🚀 배틀 시작', cancel: '❌ 취소',
+          statusConn: '연결 중...', statusReady: '',
+          statusMatch: '매칭 중…', statusLeave: '상대방이 나갔습니다.',
+          logout: '로그아웃', edit: '프로필 편집', settings: '설정',
+          name: '이름', country: '국가', level: '비트박스 레벨',
+          settingsTitle: '설정',
+          microphone: '마이크',
+          micTest: '마이크 테스트',
+          testMic: '테스트', stopTest: '중지',
+          micDetected: '마이크가 감지되었습니다',
+          micNotDetected: '마이크가 감지되지 않았습니다',
+          micGood: '마이크가 정상적으로 작동합니다',
+          micLow: '마이크 볼륨이 너무 낮습니다',
+          saveSettings: '저장', cancelSettings: '취소',
+          camera: '카메라',
+          cameraLoading: '카메라 로딩 중...',
+          cameraNotDetected: '카메라가 감지되지 않았습니다',
+          speaker: '스피커',
+          speakerLoading: '스피커 로딩 중...',
+          speakerNotDetected: '스피커가 감지되지 않았습니다',
+          testSpeaker: '스피커 테스트',
+          language: '언어',
+          levelGuide:
+`🏅 초보자 💧
+ └ 기본 세 가지 소리만 / 1년 미만 / 배틀 경험 없음 / 주로 관람객
+
+🏅 중급자 🌱
+ └ 기본기 안정 + 일부 특수 소리 / 1-3년 / 로컬 배틀 경험
+
+🏅 고급자 🔥
+ └ 여러 고급 기술 보유 / 3-5년 / 중급 대회 입상 경력
+
+🏅 최상위 플레이어 🏆
+ └ 프로 수준 / 5년 이상 / 국내외 대회 상위권
+
+※ 위의 내용은 단지 가이드라인입니다.`,
+        }
+      };
+
+      let locale = localStorage.getItem('locale') || 'en';
+
+      const toggle      = document.getElementById('cameraToggle');
+      const toggleLbl   = document.getElementById('toggleLabel');
+      const startBtn    = document.getElementById('startBattle');
+      const cancelBtn   = document.getElementById('cancelBattle');
+      const statusEl    = document.getElementById('status');
+      const logoutBtn   = document.getElementById('logoutBtn');
+      const editBtn     = document.getElementById('editProfileBtn');
+      const settingsBtn = document.getElementById('settingsBtn');
+      const editModal   = document.getElementById('editModal');
+      const settingsModal = document.getElementById('settingsModal');
+      const nameInput   = document.getElementById('editName');
+      const countryInput= document.getElementById('editCountry');
+      const levelInput  = document.getElementById('editLevel');
+      const saveBtn     = document.getElementById('saveProfileBtn');
+      const cancelEdit  = document.getElementById('cancelEditBtn');
+      const tooltipEl   = document.querySelector('.info-icon .tooltip');
+      const loader      = document.getElementById('loader');
+      
+      // 設定モーダル関連
+      const micSelect   = document.getElementById('micSelect');
+      const micTestBtn  = document.getElementById('micTestBtn');
+      const meterBar    = document.querySelector('.meter-bar');
+      const micStatus   = document.getElementById('micStatus');
+      const saveSettingsBtn = document.getElementById('saveSettingsBtn');
+      const cancelSettingsBtn = document.getElementById('cancelSettingsBtn');
+      
+      // 新しい設定項目のDOM要素参照
+      const cameraSelect = document.getElementById('cameraSelect');
+      const speakerSelect = document.getElementById('speakerSelect');
+      const speakerTestBtn = document.getElementById('speakerTestBtn');
+      const settingsLangSelect = document.getElementById('settingsLangSelect');
+      
+      let audioContext = null;
+      let audioStream = null;
+      let mediaStreamSource = null;
+      let dataArray = null;
+      let isTesting = false;
+      let animationFrame = null;
+      
+      // デバイスインジケーター関連
+      const micDot = document.getElementById('micDot');
+      const speakerDot = document.getElementById('speakerDot');
+      const micTooltip = document.getElementById('micTooltip');
+      const speakerTooltip = document.getElementById('speakerTooltip');
+
+      function applyText() {
+        const t = texts[locale];
+        toggleLbl.textContent      = t.toggleOn;
+        startBtn.textContent       = t.start;
+        cancelBtn.textContent      = t.cancel;
+        statusEl.textContent       = t.statusConn;
+        logoutBtn.textContent      = '🚪 ' + t.logout;
+        editBtn.textContent        = '✏️ ' + t.edit;
+        settingsBtn.textContent    = '⚙ ' + t.settings;
+        document.getElementById('nameLbl').textContent    = t.name;
+        document.getElementById('countryLbl').textContent = t.country;
+        document.getElementById('levelLbl').textContent   = t.level;
+        tooltipEl.textContent      = t.levelGuide;
+        
+        // 設定関連のテキスト
+        document.getElementById('settingsTitle').textContent = t.settingsTitle;
+        document.getElementById('micSelectLbl').textContent = t.microphone;
+        document.getElementById('micTestLbl').textContent   = t.micTest;
+        micTestBtn.textContent     = t.testMic;
+        
+        // 新しい設定項目のテキスト更新
+        document.getElementById('cameraSelectLbl').textContent = t.camera;
+        document.getElementById('speakerSelectLbl').textContent = t.speaker;
+        document.getElementById('speakerTestBtn').textContent = t.testSpeaker;
+        document.getElementById('langSelectLbl').textContent = t.language;
+        
+        saveSettingsBtn.textContent = t.saveSettings;
+        cancelSettingsBtn.textContent = t.cancelSettings;
+        
+        document.documentElement.lang = locale;
+        settingsLangSelect.value   = locale;
+      }
+      
+      // 言語選択ドロップダウンの変更イベント
+      settingsLangSelect.addEventListener('change', e => {
+        locale = e.target.value;
+        localStorage.setItem('locale', locale);
+        applyText();
+      });
+      
+      applyText();
+
+      // Camera preview
+      async function initPreview() {
+        const vid = document.getElementById('previewVideo');
+        if (localStorage.getItem('cameraOn') === 'true') {
+          try {
+            // 選択したカメラを使用
+            const selectedCameraId = localStorage.getItem('selectedCamera');
+            const constraints = {
+              video: selectedCameraId 
+                ? { deviceId: { exact: selectedCameraId } } 
+                : true,
+              audio: false
+            };
+            
+            const stream = await navigator.mediaDevices.getUserMedia(constraints);
+            vid.srcObject = stream;
+            toggle.checked = true;
+            toggleLbl.textContent = texts[locale].toggleOn;
+          } catch {
+            toggle.checked = false;
+            toggleLbl.textContent = texts[locale].toggleOff;
+          }
+        } else {
+          toggle.checked = false;
+          toggleLbl.textContent = texts[locale].toggleOff;
+        }
+      }
+      toggle.addEventListener('change', async e => {
+        localStorage.setItem('cameraOn', e.target.checked);
+        await initPreview();
+      });
+      initPreview();
+
+      // Socket logic
+      const socket = io();
+      socket.on('connect', () => {
+        startBtn.disabled = false;
+        statusEl.textContent = texts[locale].statusReady;
+      });
+      startBtn.addEventListener('click', () => {
+        startBtn.disabled = true;
+        cancelBtn.style.display = 'block';
+        loader.style.display = 'flex';
+        statusEl.textContent = texts[locale].statusMatch;
+        socket.emit('joinBattleQueue');
+      });
+      cancelBtn.addEventListener('click', () => {
+        socket.emit('cancelBattleQueue');
+        cancelBtn.style.display = 'none';
+        loader.style.display = 'none';
+        startBtn.disabled = false;
+        statusEl.textContent = texts[locale].statusReady;
+      });
+      socket.on('matched', ({ roomId }) => {
+        loader.style.display = 'none';
+        location.href = `/battle.html?room=${encodeURIComponent(roomId)}`;
+      });
+      socket.on('opponent-left', () => {
+        loader.style.display = 'none';
+        statusEl.textContent = texts[locale].statusLeave;
+        startBtn.disabled = false;
+      });
+
+      // Edit Profile modal
+      editBtn.addEventListener('click', async () => {
+        saveBtn.disabled = true;
+        editModal.style.display = 'flex';
+        try {
+          const res = await fetch('/api/user');
+          if (res.ok) {
+            const u = await res.json();
+            nameInput.value    = u.name;
+            countryInput.value = u.country;
+            levelInput.value   = u.level;
+          }
+        } catch {}
+        [nameInput, countryInput, levelInput].forEach(el =>
+          el.addEventListener('input', () => {
+            saveBtn.disabled = !(nameInput.value.trim() && countryInput.value && levelInput.value);
+          })
+        );
+      });
+      cancelEdit.addEventListener('click', () => {
+        editModal.style.display = 'none';
+      });
+      saveBtn.addEventListener('click', async () => {
+        const body = {
+          name:    nameInput.value.trim(),
+          country: countryInput.value,
+          level:   levelInput.value
+        };
+        const r = await fetch('/api/user', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(body)
+        });
+        if (r.ok) editModal.style.display = 'none';
+      });
+
+      // Logout
+      logoutBtn.addEventListener('click', () => {
+        location.href = '/logout';
+      });
+
+      // 設定モーダルの表示
+      settingsBtn.addEventListener('click', async () => {
+        settingsModal.style.display = 'flex';
+        await loadAvailableMicrophones();
+        await loadAvailableCameras();
+        await loadAvailableSpeakers();
+        
+        // 言語選択の初期値設定
+        settingsLangSelect.value = locale;
+        
+        // デバイスインジケーターを更新
+        updateDeviceIndicators();
+      });
+      
+      // スピーカーテストボタンのイベントリスナー
+      speakerTestBtn.addEventListener('click', () => {
+        testSpeaker();
+      });
+      
+      cancelSettingsBtn.addEventListener('click', () => {
+        stopMicTest();
+        settingsModal.style.display = 'none';
+      });
+      
+      // デバイスインジケーターを更新する関数
+      async function updateDeviceIndicators() {
+        try {
+          // 利用可能なデバイスを取得
+          const devices = await navigator.mediaDevices.enumerateDevices();
+          
+          // マイクの確認
+          const mics = devices.filter(device => device.kind === 'audioinput');
+          const selectedMicId = localStorage.getItem('selectedMic');
+          
+          if (mics.length > 0) {
+            micDot.classList.add('active');
+            // 選択されているマイクがあればその名前を、なければ最初のマイクの名前を表示
+            const selectedMic = mics.find(mic => mic.deviceId === selectedMicId) || mics[0];
+            micTooltip.textContent = selectedMic.label || 'Default microphone';
+          } else {
+            micDot.classList.remove('active');
+            micTooltip.textContent = texts[locale].micNotDetected || 'No microphone';
+          }
+          
+          // スピーカーの確認
+          const speakers = devices.filter(device => device.kind === 'audiooutput');
+          const selectedSpeakerId = localStorage.getItem('selectedSpeaker');
+          
+          if (speakers.length > 0 || 'sinkId' in HTMLMediaElement.prototype) {
+            speakerDot.classList.add('active');
+            
+            // 選択されているスピーカーがあればその名前を表示
+            if (selectedSpeakerId && selectedSpeakerId !== 'default') {
+              const selectedSpeaker = speakers.find(speaker => speaker.deviceId === selectedSpeakerId);
+              speakerTooltip.textContent = selectedSpeaker ? selectedSpeaker.label : 'Default speaker';
+            } else {
+              speakerTooltip.textContent = 'Default speaker';
+            }
+          } else {
+            speakerDot.classList.remove('active');
+            speakerTooltip.textContent = texts[locale].speakerNotDetected || 'No speaker';
+          }
+        } catch (err) {
+          console.error('デバイスの確認中にエラーが発生しました:', err);
+          // エラー時はインジケーターをオフにする
+          micDot.classList.remove('active');
+          speakerDot.classList.remove('active');
+        }
+      }
+      
+      // ページ読み込み時にデバイスインジケーターを更新
+      updateDeviceIndicators();
+      
+      // 設定が保存された時もインジケーターを更新
+      saveSettingsBtn.addEventListener('click', () => {
+        stopMicTest();
+        
+        // 設定の保存処理
+        const selectedMic = micSelect.value;
+        const selectedCamera = cameraSelect.value;
+        const selectedSpeaker = speakerSelect.value;
+        
+        if (selectedMic) {
+          localStorage.setItem('selectedMic', selectedMic);
+        }
+        
+        if (selectedCamera) {
+          localStorage.setItem('selectedCamera', selectedCamera);
+        }
+        
+        if (selectedSpeaker) {
+          localStorage.setItem('selectedSpeaker', selectedSpeaker);
+        }
+        
+        // 言語設定の保存
+        localStorage.setItem('locale', locale);
+        
+        // カメラON/OFF状態の更新（カメラの選択が変わった場合にも対応）
+        if (toggle.checked) {
+          initPreview();
+        }
+        
+        // デバイスインジケーターを更新
+        updateDeviceIndicators();
+        
+        settingsModal.style.display = 'none';
+      });
+      
+      // マイク一覧の読み込み
+      async function loadAvailableMicrophones() {
+        try {
+          const devices = await navigator.mediaDevices.enumerateDevices();
+          const mics = devices.filter(device => device.kind === 'audioinput');
+          
+          // マイク選択肢をクリア
+          micSelect.innerHTML = '';
+          
+          if (mics.length === 0) {
+            const option = document.createElement('option');
+            option.value = '';
+            option.textContent = texts[locale].micNotDetected;
+            micSelect.appendChild(option);
+            micStatus.textContent = '';
+            return;
+          }
+          
+          // 現在選択されているマイク
+          const selectedMicId = localStorage.getItem('selectedMic') || '';
+          
+          mics.forEach(mic => {
+            const option = document.createElement('option');
+            option.value = mic.deviceId;
+            option.textContent = mic.label || `Microphone ${micSelect.options.length + 1}`;
+            option.selected = mic.deviceId === selectedMicId;
+            micSelect.appendChild(option);
+          });
+          
+          micStatus.textContent = '';
+          
+          // デバイスインジケーターを更新
+          updateDeviceIndicators();
+        } catch (err) {
+          console.error('マイク一覧の取得に失敗しました:', err);
+          micSelect.innerHTML = `<option value="">${texts[locale].micNotDetected}</option>`;
+          micStatus.textContent = '';
+        }
+      }
+      
+      // マイクテスト
+      micTestBtn.addEventListener('click', () => {
+        if (isTesting) {
+          stopMicTest();
+        } else {
+          startMicTest();
+        }
+      });
+      
+      async function startMicTest() {
+        try {
+          // オーディオコンテキストを初期化
+          if (!audioContext) {
+            audioContext = new (window.AudioContext || window.webkitAudioContext)();
+          }
+          
+          // 選択したマイクを使用
+          const constraints = {
+            audio: {
+              deviceId: micSelect.value ? { exact: micSelect.value } : undefined
+            }
+          };
+          
+          audioStream = await navigator.mediaDevices.getUserMedia(constraints);
+          
+          // オーディオ分析の設定
+          mediaStreamSource = audioContext.createMediaStreamSource(audioStream);
+          audioAnalyser = audioContext.createAnalyser();
+          audioAnalyser.fftSize = 256;
+          
+          mediaStreamSource.connect(audioAnalyser);
+          
+          dataArray = new Uint8Array(audioAnalyser.frequencyBinCount);
+          
+          // UI更新
+          isTesting = true;
+          micTestBtn.textContent = texts[locale].stopTest;
+          micTestBtn.classList.add('testing');
+          
+          // 音量メーター更新ループを開始
+          updateMeter();
+          
+        } catch (err) {
+          console.error('マイクテストの開始に失敗しました:', err);
+          micStatus.textContent = '';
+        }
+      }
+      
+      function stopMicTest() {
+        if (!isTesting) return;
+        
+        // 音量メーター更新ループを停止
+        if (animationFrame) {
+          cancelAnimationFrame(animationFrame);
+          animationFrame = null;
+        }
+        
+        // マイクストリームを停止
+        if (audioStream) {
+          audioStream.getTracks().forEach(track => track.stop());
+          audioStream = null;
+        }
+        
+        // UI更新
+        isTesting = false;
+        micTestBtn.textContent = texts[locale].testMic;
+        micTestBtn.classList.remove('testing');
+        meterBar.style.width = '0%';
+        micStatus.textContent = '';
+      }
+      
+      function updateMeter() {
+        if (!audioAnalyser || !isTesting) return;
+        
+        audioAnalyser.getByteFrequencyData(dataArray);
+        
+        // 音量レベルの計算 (平均値)
+        let sum = 0;
+        for (let i = 0; i < dataArray.length; i++) {
+          sum += dataArray[i];
+        }
+        const average = sum / dataArray.length;
+        
+        // 0-255 の値を 0-100% に変換
+        const volume = Math.min(100, Math.max(0, average / 2.55));
+        
+        // メーターバーの更新
+        meterBar.style.width = `${volume}%`;
+        
+        // 音量に応じたフィードバックは表示しない
+        micStatus.textContent = '';
+        
+        // 次のフレームで再度更新
+        animationFrame = requestAnimationFrame(updateMeter);
+      }
+
+      // カメラ一覧の読み込み
+      async function loadAvailableCameras() {
+        try {
+          const devices = await navigator.mediaDevices.enumerateDevices();
+          const cameras = devices.filter(device => device.kind === 'videoinput');
+          
+          // カメラ選択肢をクリア
+          cameraSelect.innerHTML = '';
+          
+          if (cameras.length === 0) {
+            const option = document.createElement('option');
+            option.value = '';
+            option.textContent = texts[locale].cameraNotDetected;
+            cameraSelect.appendChild(option);
+            return;
+          }
+          
+          // 現在選択されているカメラ
+          const selectedCameraId = localStorage.getItem('selectedCamera') || '';
+          
+          cameras.forEach(camera => {
+            const option = document.createElement('option');
+            option.value = camera.deviceId;
+            option.textContent = camera.label || `Camera ${cameraSelect.options.length + 1}`;
+            option.selected = camera.deviceId === selectedCameraId;
+            cameraSelect.appendChild(option);
+          });
+          
+        } catch (err) {
+          console.error('カメラ一覧の取得に失敗しました:', err);
+          cameraSelect.innerHTML = `<option value="">${texts[locale].cameraNotDetected}</option>`;
+        }
+      }
+      
+      // スピーカー一覧の読み込み
+      async function loadAvailableSpeakers() {
+        try {
+          const devices = await navigator.mediaDevices.enumerateDevices();
+          const speakers = devices.filter(device => device.kind === 'audiooutput');
+          
+          // スピーカー選択肢をクリア
+          speakerSelect.innerHTML = '';
+          
+          if (speakers.length === 0) {
+            const option = document.createElement('option');
+            option.value = '';
+            option.textContent = texts[locale].speakerNotDetected;
+            speakerSelect.appendChild(option);
+            return;
+          }
+          
+          // 現在選択されているスピーカー
+          const selectedSpeakerId = localStorage.getItem('selectedSpeaker') || '';
+          
+          // デフォルトデバイスのオプション
+          const defaultOption = document.createElement('option');
+          defaultOption.value = 'default';
+          defaultOption.textContent = 'Default Speaker';
+          defaultOption.selected = selectedSpeakerId === 'default' || !selectedSpeakerId;
+          speakerSelect.appendChild(defaultOption);
+          
+          speakers.forEach(speaker => {
+            const option = document.createElement('option');
+            option.value = speaker.deviceId;
+            option.textContent = speaker.label || `Speaker ${speakerSelect.options.length}`;
+            option.selected = speaker.deviceId === selectedSpeakerId;
+            speakerSelect.appendChild(option);
+          });
+          
+          // デバイスインジケーターを更新
+          updateDeviceIndicators();
+        } catch (err) {
+          console.error('スピーカー一覧の取得に失敗しました:', err);
+          speakerSelect.innerHTML = `<option value="">${texts[locale].speakerNotDetected}</option>`;
+        }
+      }
+      
+      // スピーカーテスト
+      async function testSpeaker() {
+        const selectedSpeaker = speakerSelect.value;
+        
+        // 新しいWebAudio APIを使用したテスト音声
+        try {
+          // ボタンを一時的に無効化
+          speakerTestBtn.disabled = true;
+          
+          // 音声のセットアップ
+          let audioContext;
+          if (!audioContext) {
+            audioContext = new (window.AudioContext || window.webkitAudioContext)();
+          }
+          
+          // 音声の出力先を設定
+          let destination = audioContext.destination;
+          
+          // AudioContextのdestinationを特定のデバイスに設定（可能な場合）
+          if (selectedSpeaker && audioContext.setSinkId) {
+            try {
+              await audioContext.setSinkId(selectedSpeaker);
+            } catch (err) {
+              console.warn('setSinkIdはサポートされていません:', err);
+            }
+          }
+          
+          // オシレーターを作成（音を生成）
+          const oscillator = audioContext.createOscillator();
+          const gainNode = audioContext.createGain();
+          
+          // サイン波で440Hz（A音）を設定
+          oscillator.type = 'sine';
+          oscillator.frequency.setValueAtTime(440, audioContext.currentTime);
+          
+          // 音量を調整
+          gainNode.gain.setValueAtTime(0.5, audioContext.currentTime);
+          
+          // ノードを接続
+          oscillator.connect(gainNode);
+          gainNode.connect(destination);
+          
+          // 音を再生（0.5秒間）
+          oscillator.start();
+          oscillator.stop(audioContext.currentTime + 0.5);
+          
+          // 再生完了時にボタンを再有効化
+          setTimeout(() => {
+            speakerTestBtn.disabled = false;
+          }, 600);
+          
+          // もしOscillatorが使えない場合のフォールバック
+          oscillator.onended = () => {
+            speakerTestBtn.disabled = false;
+          };
+        } catch (err) {
+          console.error('WebAudio APIによるテストに失敗しました。Audio要素でのテストを試みます:', err);
+          
+          // フォールバック: 従来のAudio要素を使う方法
+          try {
+            const audio = new Audio();
+            
+            // ビープ音のBase64エンコードされたデータ
+            audio.src = 'data:audio/mp3;base64,SUQzBAAAAAABEVRYWFgAAAAtAAADY29tbWVudABCaWdTb3VuZEJhbmsuY29tIC8gTGFTb25vdGhlcXVlLm9yZwBURU5DAAAAHQAAA1N3aXRjaCBQbHVzIMKpIE5DSCBTb2Z0d2FyZQBUSVQyAAAABgAAAzIyMzUAVFNTRQAAAA8AAANMYXZmNTcuODMuMTAwAAAAAAAAAAAAAAD/80DEAAAAA0gAAAAATEFNRTMuMTAwVVVVVVVVVVVVVUxBTUUzLjEwMFVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVf/zQsRbAAADSAAAAABVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVf/zQMSkAAADSAAAAABVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVV';
+            
+            // 選択したスピーカーで再生（可能な場合）
+            if (selectedSpeaker && audio.setSinkId) {
+              try {
+                await audio.setSinkId(selectedSpeaker);
+              } catch (err) {
+                console.warn('setSinkIdはサポートされていません:', err);
+              }
+            }
+            
+            // 再生
+            audio.play();
+            
+            // 再生完了時にボタンを再有効化
+            audio.onended = () => {
+              speakerTestBtn.disabled = false;
+            };
+            
+            // 3秒後に強制的にボタンを再有効化（オーディオが終了しなかった場合の保険）
+            setTimeout(() => {
+              speakerTestBtn.disabled = false;
+            }, 3000);
+          } catch (audioErr) {
+            console.error('Audio要素でのテストにも失敗しました:', audioErr);
+            speakerTestBtn.disabled = false;
+          }
+        }
+      }
+    });
+  </script>
+</body>
+</html>

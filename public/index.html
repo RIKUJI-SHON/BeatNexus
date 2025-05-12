@@ -1,15 +1,135 @@
 <!DOCTYPE html>
 <html lang="en">
-<head><meta charset="UTF-8" /><title>BeatBoxArena</title></head>
-<body>
-  <h1>Hello BeatBoxArena!</h1>
-  <p id="msg"></p>
-  <script src="/socket.io/socket.io.js"></script>
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>BeatNexus</title>
+  <link rel="preconnect" href="https://fonts.gstatic.com" />
+  <link href="https://fonts.googleapis.com/css2?family=Russo+One&family=Inter:wght@400;600&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="/styles.css">
+  <!-- ページ固有の背景用CSS -->
+  <style>
+    html, body {
+      width: 100%;
+      height: 100%;
+      margin: 0;
+      background: linear-gradient(135deg, #111111, #222222);
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      position: relative;
+      font-family: 'Inter', sans-serif;
+      color: var(--text-1);
+    }
+    select, button {
+      font-family: 'Inter', sans-serif;
+    }
+    h1#title { margin: 0; font-size: 2.5rem; }
+    p#desc { margin: 1rem 0; font-size: 1rem; }
+    /* ログインボタン（Google ログイン標準スタイル） */
+    .login-btn {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      background: #fff;
+      color: #444;
+      padding: 0.8rem 1.6rem;
+      font-size: 1rem;
+      border: 1px solid #ddd;
+      border-radius: var(--radius);
+      box-shadow: 0 2px 4px rgba(0,0,0,0.2);
+      cursor: pointer;
+      text-decoration: none;
+      transition: transform .2s, background-color .2s;
+    }
+    .login-btn:hover {
+      background-color: #f7f7f7;
+      transform: translateY(-1px);
+    }
+    .login-icon {
+      width: 18px;
+      height: 18px;
+      margin-right: 8px;
+    }
+    @media (max-width: 767px) {
+      h1#title { font-size: 2.8rem; }
+      p#desc { font-size: 1.2rem; }
+      .login-btn { font-size: 1.2rem; padding: 1rem 2rem; }
+    }
+    @media (min-width: 768px) {
+      h1#title { font-size: 4rem; }
+      p#desc { font-size: 1.5rem; }
+      .login-btn { font-size: 1.3rem; padding: 1.2rem 2.5rem; }
+    }
+  </style>
   <script>
-    const socket = io();
-    socket.on('hello', msg => {
-      document.getElementById('msg').textContent = msg;
+    // 翻訳データ
+    const translations = {
+      en: {
+        title: "BeatNexus",
+        description: "Login with Google to enter the lobby.",
+        button: " Login with Google"
+      },
+      ja: {
+        title: "BeatNexus",
+        description: "Google アカウントでログインしてロビーへ入場しよう。",
+        button: " Google でログイン"
+      },
+      es: {
+        title: "BeatNexus",
+        description: "Inicia sesión con Google para entrar al lobby.",
+        button: " Iniciar sesión con Google"
+      },
+      fr: {
+        title: "BeatNexus",
+        description: "Connectez-vous avec Google pour entrer dans le lobby.",
+        button: " Se connecter avec Google"
+      },
+      zh: {
+        title: "BeatNexus",
+        description: "使用Google账号登录进入大厅。",
+        button: " 使用Google登录"
+      },
+      ko: {
+        title: "BeatNexus",
+        description: "Google 계정으로 로그인하여 로비에 입장하세요.",
+        button: " Google로 로그인"
+      }
+    };
+    function setLanguage(lang) {
+      const t = translations[lang] || translations.en;
+      document.documentElement.lang = lang;
+      document.getElementById('title').textContent = t.title;
+      document.getElementById('desc').textContent = t.description;
+      document.getElementById('loginBtn').textContent = t.button;
+      document.getElementById('loginBtn').innerHTML = `<img class="login-icon" src="https://developers.google.com/identity/images/g-logo.png" alt="Google logo"> ${t.button}`;
+      localStorage.setItem('locale', lang);
+    }
+    window.addEventListener('DOMContentLoaded', () => {
+      const saved = localStorage.getItem('locale') || 'en';
+      setLanguage(saved);
+      const selector = document.getElementById('langSelect');
+      selector.value = saved;
+      selector.addEventListener('change', e => setLanguage(e.target.value));
     });
   </script>
+</head>
+<body>
+  <select id="langSelect" style="position:absolute; top:1rem; right:1rem; background:rgba(40,40,40,0.85); color:#ffffff; border:1px solid rgba(255,255,255,0.3); padding:0.3rem 0.5rem; border-radius:4px; font-weight:500; box-shadow:0 2px 4px rgba(0,0,0,0.3);">
+    <option value="en">English</option>
+    <option value="ja">日本語</option>
+    <option value="es">Español</option>
+    <option value="fr">Français</option>
+    <option value="zh">中文</option>
+    <option value="ko">한국어</option>
+  </select>
+  <h1 id="title"></h1>
+  <p id="desc"></p>
+  <a id="loginBtn" class="login-btn" href="/auth/google">
+    <img class="login-icon" src="https://developers.google.com/identity/images/g-logo.png" alt="Google logo">
+    ログイン with Google
+  </a>
+  <!-- ナビゲーションはアンカーリンクで処理 -->
 </body>
 </html>
