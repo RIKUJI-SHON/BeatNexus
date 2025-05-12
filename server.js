@@ -32,15 +32,38 @@ const User = model('User', UserSchema);
 // ── 2) アプリケーション設定
 const app    = express();
 const server = http.createServer(app);
-const io     = new Server(server);
+const io     = new Server(server, {
+  cors: {
+    origin: process.env.FRONTEND_URL || "*", // フロントエンドのURL（Vercelなど）
+    methods: ["GET", "POST"],
+    credentials: true
+  }
+});
 
 app.use(express.json()); // JSON ボディの解析
+
+// CORS設定 - フロントエンドからのリクエストを許可
+app.use((req, res, next) => {
+  res.header('Access-Control-Allow-Origin', process.env.FRONTEND_URL || '*');
+  res.header('Access-Control-Allow-Methods', 'GET, POST, OPTIONS');
+  res.header('Access-Control-Allow-Headers', 'Content-Type, Authorization');
+  res.header('Access-Control-Allow-Credentials', 'true');
+  if (req.method === 'OPTIONS') {
+    return res.sendStatus(200);
+  }
+  next();
+});
 
 // セッション共有
 const sessionMw = session({
   secret: process.env.SESSION_SECRET || 'secret',
   resave: false,
   saveUninitialized: false,
+  cookie: {
+    secure: process.env.NODE_ENV === 'production', // 本番環境ではHTTPSのみ
+    sameSite: process.env.NODE_ENV === 'production' ? 'none' : 'lax', // クロスサイト許可
+    maxAge: 24 * 60 * 60 * 1000 // 1日
+  }
 });
 app.use(sessionMw);
 
