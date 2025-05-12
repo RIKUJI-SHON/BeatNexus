@@ -9,6 +9,7 @@ const passport       = require('passport');
 const { Server }     = require('socket.io');
 const GoogleStrategy = require('passport-google-oauth20').Strategy;
 const mongoose       = require('mongoose');
+const MongoStore     = require('connect-mongo');
 
 // ── 0) MongoDB(Mongoose) 接続
 const MONGODB_URI = process.env.MONGODB_URI;
@@ -42,6 +43,15 @@ const sessionMw = session({
   secret: process.env.SESSION_SECRET || 'secret',
   resave: false,
   saveUninitialized: false,
+  store: MongoStore.create({
+    mongoUrl: MONGODB_URI,
+    collectionName: 'sessions'
+  }),
+  cookie: {
+    maxAge: 1000 * 60 * 60 * 24,       // 1日
+    secure: process.env.NODE_ENV === 'production',
+    sameSite: 'lax'
+  }
 });
 app.use(sessionMw);
 
