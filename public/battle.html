@@ -1641,25 +1641,23 @@
       }
     });
     
-    socket.on('offer', async (room, o) => {
-      if (room !== roomId) return;
+    socket.on('offer', async o => {
       console.log('オファーを受信しました');
       try {
         console.log('リモート記述をセットします');
-        await pc.setRemoteDescription(o);
+      await pc.setRemoteDescription(o);
         console.log('アンサーを作成します');
-        const ans = await pc.createAnswer();
+      const ans = await pc.createAnswer();
         console.log('ローカル記述をセットします');
-        await pc.setLocalDescription(ans);
+      await pc.setLocalDescription(ans);
         console.log('アンサーを送信します');
-        socket.emit('answer', roomId, ans);
+      socket.emit('answer', roomId, ans);
       } catch (err) {
         console.error('アンサー作成エラー:', err);
       }
     });
     
-    socket.on('answer', async (room, a) => {
-      if (room !== roomId) return;
+    socket.on('answer', async a => {
       console.log('アンサーを受信しました');
       try {
         if (pc.signalingState !== 'stable') {
@@ -1671,8 +1669,7 @@
       }
     });
     
-    socket.on('ice', async (room, c) => {
-      if (room !== roomId || !c) return;
+    socket.on('ice', async c => {
       if (c) {
         console.log('ICE候補を受信しました');
         try {
