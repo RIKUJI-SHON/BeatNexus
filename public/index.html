@@ -1,135 +1,280 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="ja">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>BeatNexus</title>
-  <link rel="preconnect" href="https://fonts.gstatic.com" />
-  <link href="https://fonts.googleapis.com/css2?family=Russo+One&family=Inter:wght@400;600&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="/styles.css">
-  <!-- ページ固有の背景用CSS -->
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>BeatNexus – リアルタイムビートボックスバトル</title>
+
+  <!-- Google Fonts -->
+  <link rel="preconnect" href="https://fonts.gstatic.com"/>
+  <link href="https://fonts.googleapis.com/css2?family=Russo+One&family=Inter:wght@400;600&display=swap" rel="stylesheet"/>
+
   <style>
-    html, body {
-      width: 100%;
-      height: 100%;
-      margin: 0;
-      background: linear-gradient(135deg, #111111, #222222);
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      justify-content: center;
-      position: relative;
-      font-family: 'Inter', sans-serif;
-      color: var(--text-1);
+    /* ───── カラー変数 ───── */
+    :root{
+      --bg:#0E0E0E;
+      --panel:#1A1A1A;
+      --yellow:#F5D84C;
+      --blue:#08F;
+      --white:#EEE;
     }
-    select, button {
-      font-family: 'Inter', sans-serif;
+    *{box-sizing:border-box;margin:0;padding:0}
+    body{background:var(--bg);color:var(--white);font-family:'Inter','Yu Gothic','Meiryo',sans-serif;line-height:1.6;overflow-x:hidden}
+
+    /* ───── 背景ウォーターマーク ───── */
+    .watermark{
+      position:fixed;top:50%;left:50%;transform:translate(-50%,-50%) rotate(-15deg);
+      font-family:'Russo One','Arial Black',sans-serif;
+      font-size:22vw;line-height:1;color:var(--blue);
+      opacity:.05;pointer-events:none;user-select:none;
+      white-space:nowrap;z-index:-3;
     }
-    h1#title { margin: 0; font-size: 2.5rem; }
-    p#desc { margin: 1rem 0; font-size: 1rem; }
-    /* ログインボタン（Google ログイン標準スタイル） */
-    .login-btn {
-      display: inline-flex;
-      align-items: center;
-      justify-content: center;
-      background: #fff;
-      color: #444;
-      padding: 0.8rem 1.6rem;
-      font-size: 1rem;
-      border: 1px solid #ddd;
-      border-radius: var(--radius);
-      box-shadow: 0 2px 4px rgba(0,0,0,0.2);
-      cursor: pointer;
-      text-decoration: none;
-      transition: transform .2s, background-color .2s;
+
+    /* ───── 背景ぼかし動画 ───── */
+    .wave-bg{position:fixed;inset:0;z-index:-2;overflow:hidden}
+    .wave-bg::before{
+      content:"";position:absolute;inset:-50%;
+      background:url('js/sample-battle.mp4') center/cover no-repeat;
+      filter:blur(60px) opacity(.35);
+      animation:spin 22s linear infinite
     }
-    .login-btn:hover {
-      background-color: #f7f7f7;
-      transform: translateY(-1px);
+    @keyframes spin{to{transform:rotate(360deg)}}
+
+    /* ───── ヒーロー ───── */
+    header{height:92vh;display:flex;flex-direction:column;justify-content:center;align-items:center;text-align:center;padding:1rem}
+    .logo{
+      font-family:'Russo One','Arial Black',sans-serif;
+      font-size:clamp(3rem,8vw,8rem);
+      letter-spacing:.07em;
+      background:linear-gradient(90deg,var(--yellow),var(--blue));
+      -webkit-background-clip:text;color:transparent;
+      text-shadow:0 0 18px rgba(8,255,255,.25);
+      margin-bottom:.6rem;animation:fadeIn 1s ease-in forwards;opacity:0
     }
-    .login-icon {
-      width: 18px;
-      height: 18px;
-      margin-right: 8px;
+    @keyframes fadeIn{to{opacity:1}}
+    .tagline{font-size:1.25rem;margin-bottom:2.2rem;color:var(--yellow)}
+    .cta{display:flex;gap:1rem;flex-wrap:wrap;justify-content:center}
+    .btn{
+      background:linear-gradient(120deg,var(--yellow),var(--blue));
+      border:none;border-radius:50px;padding:1rem 2.8rem;
+      font-weight:600;font-size:1rem;cursor:pointer;color:var(--bg);
+      transition:transform .2s,box-shadow .2s
     }
-    @media (max-width: 767px) {
-      h1#title { font-size: 2.8rem; }
-      p#desc { font-size: 1.2rem; }
-      .login-btn { font-size: 1.2rem; padding: 1rem 2rem; }
+    .btn:hover{transform:translateY(-3px);box-shadow:0 6px 20px rgba(0,0,0,.35)}
+    .sub-cta{font-size:.9rem;color:#aaa;margin-top:1.2rem}
+
+    /* ───── セクション見出し ───── */
+    .section-title{
+      font-size:1.6rem;font-weight:700;margin-bottom:1.4rem;
+      color:var(--blue);text-align:center
     }
-    @media (min-width: 768px) {
-      h1#title { font-size: 4rem; }
-      p#desc { font-size: 1.5rem; }
-      .login-btn { font-size: 1.3rem; padding: 1.2rem 2.5rem; }
+
+    /* ───── Features ───── */
+    #features{display:grid;gap:2rem;grid-template-columns:repeat(auto-fit,minmax(260px,1fr));padding:3rem 1rem}
+    .card{
+      position:relative;padding:2.2rem 1.4rem;border-radius:20px;
+      background:rgba(255,255,255,.05);backdrop-filter:blur(8px);
+      box-shadow:0 4px 18px rgba(0,0,0,.25);transition:transform .3s
+    }
+    .card:hover{transform:translateY(-4px) scale(1.03)}
+    .icon{font-size:2.4rem;margin-bottom:.6rem}
+    .card h3{font-size:1.15rem;margin-bottom:.4rem;color:var(--yellow)}
+    .card p{font-size:.95rem;color:#DDD}
+    .soon{opacity:.55;filter:grayscale(.3)}
+    .soon::after{
+      content:"COMING&nbsp;SOON";position:absolute;top:12px;right:-22px;
+      transform:rotate(15deg);background:var(--blue);color:var(--bg);
+      padding:.25rem .6rem;font-size:.7rem;font-weight:bold;border-radius:4px;
+      box-shadow:0 2px 6px rgba(0,0,0,.25)
+    }
+
+    /* ───── FAQ ───── */
+    .faq-section{padding:3rem 1rem}
+    .faq-list{max-width:720px;margin:0 auto}
+    .faq-item{background:var(--panel);border-radius:14px;margin-bottom:1rem;overflow:hidden}
+    .q{width:100%;padding:1rem 1.2rem;background:none;border:none;color:var(--yellow);font-weight:bold;text-align:left;font-size:1rem;cursor:pointer}
+    .q:hover{background:#202020}
+    .a{display:none;padding:0 1.5rem 1.2rem 2.3rem;font-size:.95rem;color:#CCC}
+    .faq-item.open .a{display:block}
+
+    /* ───── Download ───── */
+    .dl{display:flex;flex-wrap:wrap;gap:2rem;justify-content:center;align-items:center;padding:3rem 1rem}
+    .qr{background:var(--panel);border-radius:16px;padding:1.5rem;text-align:center}
+    .qr img{width:120px;height:120px}
+    .dl-btns{display:flex;flex-direction:column;gap:1rem;align-items:center}
+    .dl-btn{background:var(--blue);color:var(--bg);border:none;border-radius:24px;padding:.8rem 2rem;font-weight:bold;cursor:pointer;transition:transform .2s,box-shadow .2s}
+    .dl-btn:hover{transform:translateY(-3px);box-shadow:0 6px 18px rgba(0,0,0,.35)}
+
+    /* ───── フッター ───── */
+    footer{background:var(--panel);padding:2rem 1rem;text-align:center;font-size:.85rem;color:#888;position:relative}
+    footer::before{
+      content:"";position:absolute;top:0;left:0;width:100%;height:4px;
+      background:repeating-linear-gradient(90deg,var(--blue)0 8px,transparent 8px 16px);
+      animation:scrollBar 4s linear infinite
+    }
+    @keyframes scrollBar{to{background-position-x:-16px}}
+
+    /* ───── Responsive ───── */
+    @media(max-width:640px){
+      .btn{width:100%}
+      .dl{flex-direction:column}
     }
   </style>
+</head>
+<body>
+
+  <!-- ウォーターマーク -->
+  <div class="watermark">BeatNexus</div>
+
+  <!-- 背景ぼかし -->
+  <div class="wave-bg"></div>
+
+  <!-- Hero -->
+  <header>
+    <h1 class="logo" id="logoText">BeatNexus</h1>
+    <p class="tagline" id="taglineText">世界中のビートボクサーとリアルタイム対戦！</p>
+    <!-- 言語選択 -->
+    <select id="langSelect" class="lang-select" style="position:absolute; top:1rem; right:1rem; background:var(--panel); color:var(--white); border:none; padding:0.3rem; border-radius:4px;">
+      <option value="ja">日本語</option>
+      <option value="en">English</option>
+    </select>
+
+    <div class="cta">
+      <button class="btn" id="btnBattle" onclick="location.href='/sign.html'">今すぐバトル開始（無料）</button>
+      <button class="btn" id="btnFeatures" onclick="document.getElementById('features').scrollIntoView({behavior:'smooth'})">機能を見る</button>
+    </div>
+
+    <p class="sub-cta" id="subCta">PWA版をブラウザで使う ｜ iOS / Android アプリも準備中</p>
+  </header>
+
+  <!-- Features -->
+  <section id="features">
+    <h2 class="section-title" id="featuresTitle">BeatNexus — 主な機能</h2>
+
+    <article class="card"><div class="icon">🎤</div><h3>リアルタイムバトル</h3><p>P2P でつながる 1on1 音声／映像対戦。60 秒 ×2 ターンで勝負。</p></article>
+    <article class="card"><div class="icon">🤝</div><h3>対戦後フィードバック</h3><p>チャット＆録音シェアで互いにアドバイスし合える。</p></article>
+    <article class="card soon"><div class="icon">📼</div><h3>瞬間キャプチャ</h3><p>ハイライトを自動録画、ワンクリックで SNS に拡散。</p></article>
+    <article class="card soon"><div class="icon">📈</div><h3>ランキング & 実力判定</h3><p>ELO レーティングで自分の成長を可視化。</p></article>
+  </section>
+
+  <!-- FAQ -->
+  <section class="faq-section">
+    <h2 class="section-title" id="faqTitle">BeatNexus — よくある質問</h2>
+    <div class="faq-list">
+      <div class="faq-item">
+        <button class="q" onclick="toggleFaq(this)">🔄 通信が途切れたら？</button>
+        <div class="a">再接続ボタンを押すと相手と再度つながります。それでもダメな場合はページをリロードしてください。</div>
+      </div>
+      <div class="faq-item">
+        <button class="q" onclick="toggleFaq(this)">📱 PWAとアプリの違いは？</button>
+        <div class="a">PWAはインストール不要でブラウザからすぐ使えます。アプリはストアからダウンロードして使います。</div>
+      </div>
+      <div class="faq-item">
+        <button class="q" onclick="toggleFaq(this)">🎥 ハイライト動画はどこで見られる？</button>
+        <div class="a">バトル終了後、マイページやSNSシェア画面からハイライト動画を確認できます。</div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Download -->
+  <section class="dl">
+    <h2 class="section-title" id="downloadTitle" style="width:100%">BeatNexus — スマホで始めよう</h2>
+    <div class="qr">
+      <p id="qrText" style="margin-bottom:.6rem">スマホでアクセス</p>
+      <img src="js/sample-qr.png" alt="QRコード">
+    </div>
+    <div class="dl-btns">
+      <button class="dl-btn" id="btnDlBrowser" onclick="location.href='/'">ブラウザで始める</button>
+      <a href="#" class="dl-btn" id="btnDlIOS">iOSアプリをダウンロード</a>
+      <a href="#" class="dl-btn" id="btnDlAndroid">Androidアプリをダウンロード</a>
+    </div>
+  </section>
+
+  <!-- Footer -->
+  <footer id="footerText">
+    © 2025 BeatNexus / All beats reserved.
+  </footer>
+
   <script>
     // 翻訳データ
     const translations = {
-      en: {
-        title: "BeatNexus",
-        description: "Login with Google to enter the lobby.",
-        button: " Login with Google"
-      },
       ja: {
-        title: "BeatNexus",
-        description: "Google アカウントでログインしてロビーへ入場しよう。",
-        button: " Google でログイン"
+        logo: "BeatNexus",
+        tagline: "世界中のビートボクサーとリアルタイム対戦！",
+        btnBattle: "今すぐバトル開始（無料）",
+        btnFeatures: "機能を見る",
+        subCta: "PWA版をブラウザで使う ｜ iOS / Android アプリも準備中",
+        featuresTitle: "BeatNexus — 主な機能",
+        features: [
+          { title: "リアルタイムバトル", desc: "P2P でつながる 1on1 音声／映像対戦。60 秒 ×2 ターンで勝負。" },
+          { title: "対戦後フィードバック", desc: "チャット＆録音シェアで互いにアドバイスし合える。" },
+          { title: "瞬間キャプチャ", desc: "ハイライトを自動録画、ワンクリックで SNS に拡散。" },
+          { title: "ランキング & 実力判定", desc: "ELO レーティングで自分の成長を可視化。" }
+        ],
+        faqTitle: "BeatNexus — よくある質問",
+        faqs: [
+          { q: "🔄 通信が途切れたら？", a: "再接続ボタンを押すと相手と再度つながります。それでもダメな場合はページをリロードしてください。" },
+          { q: "📱 PWAとアプリの違いは？", a: "PWAはインストール不要でブラウザからすぐ使えます。アプリはストアからダウンロードして使います。" },
+          { q: "🎥 ハイライト動画はどこで見られる？", a: "バトル終了後、マイページや SNS シェア画面からハイライト動画を確認できます。" }
+        ],
+        downloadTitle: "BeatNexus — スマホで始めよう",
+        download: { qr: "スマホでアクセス", btnBrowser: "ブラウザで始める", btnIOS: "iOSアプリをダウンロード", btnAndroid: "Androidアプリをダウンロード" },
+        footer: "© 2025 BeatNexus / All beats reserved."
       },
-      es: {
-        title: "BeatNexus",
-        description: "Inicia sesión con Google para entrar al lobby.",
-        button: " Iniciar sesión con Google"
-      },
-      fr: {
-        title: "BeatNexus",
-        description: "Connectez-vous avec Google pour entrer dans le lobby.",
-        button: " Se connecter avec Google"
-      },
-      zh: {
-        title: "BeatNexus",
-        description: "使用Google账号登录进入大厅。",
-        button: " 使用Google登录"
-      },
-      ko: {
-        title: "BeatNexus",
-        description: "Google 계정으로 로그인하여 로비에 입장하세요.",
-        button: " Google로 로그인"
+      en: {
+        logo: "BeatNexus",
+        tagline: "Battle in real-time with beatboxers around the world!",
+        btnBattle: "Start Battle Now (Free)",
+        btnFeatures: "View Features",
+        subCta: "Use PWA in browser | iOS / Android apps coming soon",
+        featuresTitle: "BeatNexus — Key Features",
+        features: [
+          { title: "Real-Time Battle", desc: "P2P 1-on-1 audio/video battles. 60 seconds ×2 rounds." },
+          { title: "Post-Battle Feedback", desc: "Chat & recording sharing for mutual advice." },
+          { title: "Instant Capture", desc: "Auto-record highlights, share to SNS with one click." },
+          { title: "Ranking & Rating", desc: "ELO rating to visualize your progress." }
+        ],
+        faqTitle: "BeatNexus — FAQ",
+        faqs: [
+          { q: "🔄 What if the connection drops?", a: "Click the reconnect button to rejoin your opponent. If that fails, refresh the page." },
+          { q: "📱 PWA vs App? What's the difference?", a: "PWA works instantly in your browser without installation. The app needs to be downloaded from the store." },
+          { q: "🎥 Where to view highlights?", a: "After battle ends, view highlights in My Page or share screen." }
+        ],
+        downloadTitle: "BeatNexus — Get Started on Mobile",
+        download: { qr: "Scan QR to access", btnBrowser: "Start in Browser", btnIOS: "Download iOS App", btnAndroid: "Download Android App" },
+        footer: "© 2025 BeatNexus / All beats reserved."
       }
     };
-    function setLanguage(lang) {
-      const t = translations[lang] || translations.en;
-      document.documentElement.lang = lang;
-      document.getElementById('title').textContent = t.title;
-      document.getElementById('desc').textContent = t.description;
-      document.getElementById('loginBtn').textContent = t.button;
-      document.getElementById('loginBtn').innerHTML = `<img class="login-icon" src="https://developers.google.com/identity/images/g-logo.png" alt="Google logo"> ${t.button}`;
-      localStorage.setItem('locale', lang);
+    // FAQ の開閉
+    function toggleFaq(btn){ btn.parentElement.classList.toggle('open'); }
+    // ブラウザ言語判定
+    function determineLanguage(){ const lang=navigator.language.slice(0,2); return translations[lang]?lang:'en'; }
+    // テキスト更新
+    function setLanguage(lang){
+      localStorage.setItem('lang',lang);
+      document.getElementById('langSelect').value=lang;
+      const t=translations[lang];
+      document.getElementById('logoText').textContent=t.logo;
+      document.getElementById('taglineText').textContent=t.tagline;
+      document.getElementById('btnBattle').textContent=t.btnBattle;
+      document.getElementById('btnFeatures').textContent=t.btnFeatures;
+      document.getElementById('subCta').textContent=t.subCta;
+      document.getElementById('featuresTitle').textContent=t.featuresTitle;
+      Array.from(document.querySelectorAll('#features .card')).forEach((c,i)=>{c.querySelector('h3').textContent=t.features[i].title; c.querySelector('p').textContent=t.features[i].desc;});
+      document.getElementById('faqTitle').textContent=t.faqTitle;
+      Array.from(document.querySelectorAll('.faq-item')).forEach((item,i)=>{item.querySelector('.q').textContent=t.faqs[i].q; item.querySelector('.a').textContent=t.faqs[i].a;});
+      document.getElementById('downloadTitle').textContent=t.downloadTitle;
+      document.getElementById('qrText').textContent=t.download.qr;
+      document.getElementById('btnDlBrowser').textContent=t.download.btnBrowser;
+      document.getElementById('btnDlIOS').textContent=t.download.btnIOS;
+      document.getElementById('btnDlAndroid').textContent=t.download.btnAndroid;
+      document.getElementById('footerText').textContent=t.footer;
     }
-    window.addEventListener('DOMContentLoaded', () => {
-      const saved = localStorage.getItem('locale') || 'en';
+    window.addEventListener('DOMContentLoaded',()=>{
+      const saved=localStorage.getItem('lang')||determineLanguage();
       setLanguage(saved);
-      const selector = document.getElementById('langSelect');
-      selector.value = saved;
-      selector.addEventListener('change', e => setLanguage(e.target.value));
+      document.getElementById('langSelect').addEventListener('change',e=>setLanguage(e.target.value));
     });
   </script>
-</head>
-<body>
-  <select id="langSelect" style="position:absolute; top:1rem; right:1rem; background:rgba(40,40,40,0.85); color:#ffffff; border:1px solid rgba(255,255,255,0.3); padding:0.3rem 0.5rem; border-radius:4px; font-weight:500; box-shadow:0 2px 4px rgba(0,0,0,0.3);">
-    <option value="en">English</option>
-    <option value="ja">日本語</option>
-    <option value="es">Español</option>
-    <option value="fr">Français</option>
-    <option value="zh">中文</option>
-    <option value="ko">한국어</option>
-  </select>
-  <h1 id="title"></h1>
-  <p id="desc"></p>
-  <a id="loginBtn" class="login-btn" href="/auth/google">
-    <img class="login-icon" src="https://developers.google.com/identity/images/g-logo.png" alt="Google logo">
-    ログイン with Google
-  </a>
-  <!-- ナビゲーションはアンカーリンクで処理 -->
 </body>
 </html>

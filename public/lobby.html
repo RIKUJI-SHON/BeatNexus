@@ -10,29 +10,96 @@
   <style>
     body {
       margin: 0;
-      background: var(--bg-1);
       color: var(--text-1);
       font-family: 'Inter', sans-serif;
       display: flex;
       align-items: center;
       justify-content: center;
       min-height: 100vh;
-      background: linear-gradient(135deg, #111111, #222222);
+      background: #0E0E0E;
+      overflow-x: hidden;
     }
+    
+    /* ───── 背景ウォーターマーク ───── */
+    .watermark {
+      position: fixed;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%) rotate(-15deg);
+      font-family: 'Russo One', 'Arial Black', sans-serif;
+      font-size: 22vw;
+      line-height: 1;
+      color: #08F;
+      opacity: .05;
+      pointer-events: none;
+      user-select: none;
+      white-space: nowrap;
+      z-index: -3;
+    }
+    
+    /* ───── 背景ぼかし動画 ───── */
+    .wave-bg {
+      position: fixed;
+      inset: 0;
+      z-index: -2;
+      overflow: hidden;
+    }
+    .wave-bg::before {
+      content: "";
+      position: absolute;
+      inset: -50%;
+      background: url('js/sample-battle.mp4') center/cover no-repeat;
+      filter: blur(60px) opacity(.35);
+      animation: spin 22s linear infinite;
+    }
+    @keyframes spin {
+      to {
+        transform: rotate(360deg);
+      }
+    }
+    
     .container {
       position: relative;
       width: 90vw;
       max-width: 450px;
-      background: rgba(255,255,255,0.08);
-      backdrop-filter: blur(12px);
+      background: rgba(255,255,255,0.09);
+      background: linear-gradient(135deg, 
+                  rgba(255,255,255,0.15) 0%, 
+                  rgba(255,255,255,0.08) 40%, 
+                  rgba(255,255,255,0.06) 100%);
+      backdrop-filter: blur(16px);
       border-radius: var(--radius);
       padding: 1.2rem;
-      box-shadow: 0 8px 24px rgba(0,0,0,0.6);
+      box-shadow: 0 10px 30px rgba(0,0,0,0.35),
+                  inset 0 1px 1px rgba(255,255,255,0.3);
       display: flex;
       flex-direction: column;
       align-items: center;
       gap: 0.6rem;
-      border: 1px solid rgba(255,255,255,0.1);
+      border: 1px solid rgba(255,255,255,0.18);
+      border-top: 1px solid rgba(255,255,255,0.35);
+      border-bottom: 1px solid rgba(0,0,0,0.1);
+      z-index: 1;
+      transition: transform 0.3s, box-shadow 0.3s;
+      overflow: hidden;
+    }
+    
+    .container::before {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 130%;
+      height: 150%;
+      background: linear-gradient(135deg, rgba(255,255,255,0.18) 0%, transparent 100%);
+      transform: translateX(-30%) translateY(-50%) rotate(-15deg);
+      pointer-events: none;
+    }
+    
+    .container:hover {
+      transform: translateY(-5px);
+      box-shadow: 0 15px 35px rgba(0,0,0,0.45),
+                  inset 0 1px 1px rgba(255,255,255,0.4);
     }
     
     /* ここから新しいユーザーアクションスタイル */
@@ -373,8 +440,12 @@
       z-index: 1000;
     }
     #editModal .card {
-      background: rgba(255,255,255,0.05);
-      backdrop-filter: blur(12px);
+      background: rgba(255,255,255,0.09);
+      background: linear-gradient(135deg, 
+                  rgba(255,255,255,0.15) 0%, 
+                  rgba(255,255,255,0.08) 40%, 
+                  rgba(255,255,255,0.06) 100%);
+      backdrop-filter: blur(16px);
       padding: 2rem;
       border-radius: var(--radius);
       width: 90vw;
@@ -383,9 +454,27 @@
       display: flex;
       flex-direction: column;
       gap: 1rem;
-      border: 1px solid rgba(255,255,255,0.1);
-      box-shadow: 0 8px 24px rgba(0,0,0,0.6);
+      border: 1px solid rgba(255,255,255,0.18);
+      border-top: 1px solid rgba(255,255,255,0.35);
+      border-bottom: 1px solid rgba(0,0,0,0.1);
+      box-shadow: 0 10px 30px rgba(0,0,0,0.35),
+                  inset 0 1px 1px rgba(255,255,255,0.3);
+      position: relative;
+      overflow: hidden;
     }
+    
+    #editModal .card::before {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 130%;
+      height: 200%;
+      background: linear-gradient(135deg, rgba(255,255,255,0.18) 0%, transparent 100%);
+      transform: translateX(-30%) translateY(-60%) rotate(-15deg);
+      pointer-events: none;
+    }
+    
     #editModal h2 {
       margin-top: 0;
       font-family: 'Russo One', sans-serif;
@@ -670,8 +759,12 @@
       z-index: 1000;
     }
     #settingsModal .card {
-      background: rgba(255,255,255,0.05);
-      backdrop-filter: blur(12px);
+      background: rgba(255,255,255,0.09);
+      background: linear-gradient(135deg, 
+                  rgba(255,255,255,0.15) 0%, 
+                  rgba(255,255,255,0.08) 40%, 
+                  rgba(255,255,255,0.06) 100%);
+      backdrop-filter: blur(16px);
       padding: 2rem;
       border-radius: var(--radius);
       width: 90vw;
@@ -680,11 +773,29 @@
       display: flex;
       flex-direction: column;
       gap: 1rem;
-      border: 1px solid rgba(255,255,255,0.1);
-      box-shadow: 0 8px 24px rgba(0,0,0,0.6);
+      border: 1px solid rgba(255,255,255,0.18);
+      border-top: 1px solid rgba(255,255,255,0.35);
+      border-bottom: 1px solid rgba(0,0,0,0.1);
+      box-shadow: 0 10px 30px rgba(0,0,0,0.35),
+                  inset 0 1px 1px rgba(255,255,255,0.3);
+      position: relative;
+      overflow: hidden;
       max-height: 80vh;
       overflow-y: auto;
     }
+    
+    #settingsModal .card::before {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 130%;
+      height: 200%;
+      background: linear-gradient(135deg, rgba(255,255,255,0.18) 0%, transparent 100%);
+      transform: translateX(-30%) translateY(-60%) rotate(-15deg);
+      pointer-events: none;
+    }
+    
     #settingsModal h2 {
       margin-top: 0;
       font-family: 'Russo One', sans-serif;
@@ -856,6 +967,12 @@
   </style>
 </head>
 <body>
+  <!-- ウォーターマーク -->
+  <div class="watermark">BeatNexus</div>
+
+  <!-- 背景ぼかし -->
+  <div class="wave-bg"></div>
+
   <div class="container">
     <h1>🎤 BeatNexus</h1>
 
