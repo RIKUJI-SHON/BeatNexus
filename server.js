@@ -9,12 +9,13 @@ const passport       = require('passport');
 const { Server }     = require('socket.io');
 const GoogleStrategy = require('passport-google-oauth20').Strategy;
 const mongoose       = require('mongoose');
-const MongoStore     = require('connect-mongo');
 
 // ── 0) MongoDB(Mongoose) 接続
 const MONGODB_URI = process.env.MONGODB_URI;
-mongoose.connect(MONGODB_URI)
-  .then(() => console.log('✅ MongoDB connected'))
+mongoose.connect(MONGODB_URI, {
+  useNewUrlParser: true,
+  useUnifiedTopology: true,
+}).then(() => console.log('✅ MongoDB connected'))
   .catch(err => console.error('❌ MongoDB connection error:', err));
 
 // ── 1) ユーザースキーマ作成
@@ -31,42 +32,15 @@ const User = model('User', UserSchema);
 // ── 2) アプリケーション設定
 const app    = express();
 const server = http.createServer(app);
-const io     = new Server(server, {
-  cors: {
-    origin: process.env.FRONTEND_URL || "*", // フロントエンドのURL（Vercelなど）
-    methods: ["GET", "POST"],
-    credentials: true
-  }
-});
+const io     = new Server(server);
 
 app.use(express.json()); // JSON ボディの解析
-
-// CORS設定 - フロントエンドからのリクエストを許可
-app.use((req, res, next) => {
-  res.header('Access-Control-Allow-Origin', process.env.FRONTEND_URL || '*');
-  res.header('Access-Control-Allow-Methods', 'GET, POST, OPTIONS');
-  res.header('Access-Control-Allow-Headers', 'Content-Type, Authorization');
-  res.header('Access-Control-Allow-Credentials', 'true');
-  if (req.method === 'OPTIONS') {
-    return res.sendStatus(200);
-  }
-  next();
-});
 
 // セッション共有
 const sessionMw = session({
   secret: process.env.SESSION_SECRET || 'secret',
   resave: false,
   saveUninitialized: false,
-  store: MongoStore.create({
-    mongoUrl: MONGODB_URI,
-    ttl: 60 * 60 * 24 // 1日
-  }),
-  cookie: {
-    secure: process.env.NODE_ENV === 'production', // 本番環境ではHTTPSのみ
-    sameSite: process.env.NODE_ENV === 'production' ? 'none' : 'lax', // クロスサイト許可
-    maxAge: 24 * 60 * 60 * 1000 // 1日
-  }
 });
 app.use(sessionMw);
 
@@ -76,7 +50,7 @@ app.use(passport.session());
 passport.use(new GoogleStrategy({
   clientID:     process.env.GOOGLE_CLIENT_ID,
   clientSecret: process.env.GOOGLE_CLIENT_SECRET,
-  callbackURL:  process.env.GOOGLE_CALLBACK_URL,
+  callbackURL:  '/auth/google/callback',
 }, (accessToken, refreshToken, profile, done) => done(null, profile)));
 passport.serializeUser((user, done) => done(null, user));
 passport.deserializeUser((obj, done) => done(null, obj));

@@ -7,8 +7,6 @@
   <link rel="preconnect" href="https://fonts.gstatic.com" />
   <link href="https://fonts.googleapis.com/css2?family=Russo+One&family=Inter:wght@400;600&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="/styles.css">
-  <!-- API設定を読み込み -->
-  <script src="/js/api-config.js"></script>
   <!-- ページ固有の背景用CSS -->
   <style>
     html, body {
@@ -106,10 +104,6 @@
       document.getElementById('desc').textContent = t.description;
       document.getElementById('loginBtn').textContent = t.button;
       document.getElementById('loginBtn').innerHTML = `<img class="login-icon" src="https://developers.google.com/identity/images/g-logo.png" alt="Google logo"> ${t.button}`;
-      
-      // 認証URLを更新
-      document.getElementById('loginBtn').href = getAuthUrl('/auth/google');
-      
       localStorage.setItem('locale', lang);
     }
     window.addEventListener('DOMContentLoaded', () => {
