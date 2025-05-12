@@ -198,7 +198,9 @@ io.on('connection', async socket => {
   });
 
   ['offer','answer','ice'].forEach(evt =>
-    socket.on(evt, (roomId, data) => socket.to(roomId).emit(evt, data))
+    socket.on(evt, (roomId, data) => {
+      socket.to(roomId).emit(evt, roomId, data);
+    })
   );
 
   // WebRTC再接続サポート - 接続問題があった場合に使用
