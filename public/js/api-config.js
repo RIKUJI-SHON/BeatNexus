@@ -4,7 +4,7 @@ const isDevelopment = window.location.hostname === 'localhost' || window.locatio
 // バックエンドのURL（本番環境ではRenderのURL、開発環境では相対パス）
 const API_BASE_URL = isDevelopment 
   ? '' 
-  : 'https://your-app.onrender.com'; // ここにRenderで発行されたURLを入力してください
+  : 'https://beatnexus.onrender.com'; // 実際のRenderのURL
 
 // Socket.IO接続を作成する関数
 function createSocketConnection() {
